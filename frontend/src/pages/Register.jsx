@@ -1,27 +1,29 @@
 import { useState } from 'react';
-import { login } from '../services/authService';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-function Login() {
+import { register } from '../services/authService';
+
+function Register() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
+  const [role, setRole] = useState('RH');
   const [erreur, setErreur] = useState('');
+  const [succes, setSucces] = useState('');
   const [chargement, setChargement] = useState(false);
 
-  const { connecter } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErreur('');
+    setSucces('');
     setChargement(true);
 
     try {
-      const data = await login(email, motDePasse);
-      connecter(data.token, data.utilisateur);
-      navigate('/dashboard');
+      await register(email, motDePasse, role);
+      setSucces('Compte créé avec succès. Redirection vers la connexion...');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur de connexion';
+      const message = err.response?.data?.message || 'Erreur lors de la création du compte';
       setErreur(message);
     } finally {
       setChargement(false);
@@ -30,7 +32,7 @@ function Login() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '80px auto' }}>
-      <h2>Connexion - Gestion RH CPG</h2>
+      <h2>Créer un compte - Gestion RH CPG</h2>
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '12px' }}>
@@ -55,17 +57,32 @@ function Login() {
           />
         </div>
 
+        <div style={{ marginBottom: '12px' }}>
+          <label>Rôle</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="EMPLOYE">Employé</option>
+            <option value="CHEF">Chef</option>
+            <option value="RH">RH</option>
+          </select>
+        </div>
+
         {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
+        {succes && <p style={{ color: 'green' }}>{succes}</p>}
 
         <button type="submit" disabled={chargement} style={{ width: '100%', padding: '10px' }}>
-          {chargement ? 'Connexion...' : 'Se connecter'}
+          {chargement ? 'Création...' : 'Créer le compte'}
         </button>
-        <p style={{ marginTop: '16px', textAlign: 'center' }}>
-        Pas encore de compte ? <Link to="/register">Créer un compte</Link>
-      </p>
       </form>
+
+      <p style={{ marginTop: '16px', textAlign: 'center' }}>
+        Déjà un compte ? <Link to="/login">Se connecter</Link>
+      </p>
     </div>
   );
 }
 
-export default Login;
+export default Register;

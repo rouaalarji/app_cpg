@@ -1,4 +1,6 @@
+const bcrypt = require('bcrypt');
 const employeModel = require('../models/employe_model');
+const utilisateurModel = require('../models/utilisateur_model');
 
 async function getAll(req, res) {
   try {
@@ -25,14 +27,42 @@ async function getById(req, res) {
 
 async function create(req, res) {
   try {
-    const { matricule, nom, prenom, dateEmbauche, poste, serviceId } = req.body;
+    const {
+      email, motDePasse, role,
+      matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId
+    } = req.body;
 
-    if (!matricule || !nom || !prenom || !dateEmbauche || !poste || !serviceId) {
+    if (!email || !motDePasse || !matricule || !nom || !prenom || !dateEmbauche || !poste || !serviceId) {
       return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
 
-    const id = await employeModel.create(req.body);
-    res.status(201).json({ message: 'Employé créé', id });
+    const utilisateurExistant = await utilisateurModel.findByEmail(email);
+    if (utilisateurExistant) {
+      return res.status(409).json({ message: 'Cet email est déjà utilisé' });
+    }
+
+    // 1. Créer le compte utilisateur (connexion)
+    const motDePasseHash = await bcrypt.hash(motDePasse, 10);
+    const utilisateurId = await utilisateurModel.create({
+      email,
+      motDePasse: motDePasseHash,
+      role: role || 'EMPLOYE',
+    });
+
+    // 2. Créer la fiche employé liée à ce compte
+    const employeId = await employeModel.create({
+      utilisateurId,
+      matricule,
+      nom,
+      prenom,
+      dateNaissance,
+      dateEmbauche,
+      poste,
+      serviceId,
+      chefId,
+    });
+
+    res.status(201).json({ message: 'Employé et compte créés', employeId, utilisateurId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });

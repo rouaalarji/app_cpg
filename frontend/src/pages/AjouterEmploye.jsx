@@ -11,6 +11,9 @@ function AjouterEmploye() {
   const [chargement, setChargement] = useState(false);
 
   const [formData, setFormData] = useState({
+    email: '',
+    motDePasse: '',
+    role: 'EMPLOYE',
     matricule: '',
     nom: '',
     prenom: '',
@@ -18,7 +21,6 @@ function AjouterEmploye() {
     dateEmbauche: '',
     poste: '',
     serviceId: '',
-    utilisateurId: '',
   });
 
   useEffect(() => {
@@ -58,6 +60,48 @@ function AjouterEmploye() {
       <h2>Ajouter un employé</h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
+        <h4 style={{ marginBottom: '8px' }}>Compte de connexion</h4>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label>Mot de passe initial</label>
+          <input
+            type="text"
+            name="motDePasse"
+            value={formData.motDePasse}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label>Rôle</label>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="EMPLOYE">Employé</option>
+            <option value="CHEF">Chef</option>
+            <option value="RH">RH</option>
+          </select>
+        </div>
+
+        <h4 style={{ marginBottom: '8px' }}>Informations employé</h4>
+
         <div style={{ marginBottom: '12px' }}>
           <label>Matricule</label>
           <input
@@ -145,21 +189,6 @@ function AjouterEmploye() {
               </option>
             ))}
           </select>
-        </div>
-
-        <div style={{ marginBottom: '12px' }}>
-          <label>ID Utilisateur (compte de connexion associé)</label>
-          <input
-            type="number"
-            name="utilisateurId"
-            value={formData.utilisateurId}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px' }}
-          />
-          <small style={{ color: '#666' }}>
-            L'utilisateur doit déjà exister (créé via register) avant de créer sa fiche employé.
-          </small>
         </div>
 
         {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
