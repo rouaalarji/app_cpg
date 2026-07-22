@@ -1,50 +1,38 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getById, update } from '../services/employeService';
-import api from '../services/api';
-import Layout from '../components/Layout';
-
-function ModifierEmploye() {
-  const { id } = useParams();
+import { useNavigate } from 'react-router-dom';
+import { create } from '../../services/employeService';
+import api from '../../services/api';
+import LayoutAdmin from '../../components/layout/LayoutAdmin';
+function AjouterEmploye() {
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [erreur, setErreur] = useState('');
   const [chargement, setChargement] = useState(false);
-  const [chargementInitial, setChargementInitial] = useState(true);
 
   const [formData, setFormData] = useState({
+    email: '',
+    motDePasse: '',
+    role: 'EMPLOYE',
+    matricule: '',
     nom: '',
     prenom: '',
     dateNaissance: '',
+    dateEmbauche: '',
     poste: '',
     serviceId: '',
-    statut: 'ACTIF',
   });
 
   useEffect(() => {
-    async function charger() {
+    async function chargerServices() {
       try {
-        const [employe, servicesResponse] = await Promise.all([
-          getById(id),
-          api.get('/services'),
-        ]);
-        setServices(servicesResponse.data);
-        setFormData({
-          nom: employe.nom,
-          prenom: employe.prenom,
-          dateNaissance: employe.date_naissance ? employe.date_naissance.split('T')[0] : '',
-          poste: employe.poste,
-          serviceId: employe.service_id,
-          statut: employe.statut,
-        });
+        const response = await api.get('/services');
+        setServices(response.data);
       } catch (err) {
-        setErreur('Impossible de charger cet employé');
-      } finally {
-        setChargementInitial(false);
+        console.error('Erreur chargement services', err);
       }
     }
-    charger();
-  }, [id]);
+    chargerServices();
+  }, []);
 
   function handleChange(e) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,29 +44,75 @@ function ModifierEmploye() {
     setChargement(true);
 
     try {
-      await update(id, formData);
+      await create(formData);
       navigate('/employes');
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de la modification';
+      const message = err.response?.data?.message || 'Erreur lors de la création';
       setErreur(message);
     } finally {
       setChargement(false);
     }
   }
 
-  if (chargementInitial) {
-    return (
-      <Layout>
-        <p>Chargement...</p>
-      </Layout>
-    );
-  }
-
   return (
-    <Layout>
-      <h2>Modifier un employé</h2>
+    <LayoutAdmin>
+      <h2>Ajouter un employé</h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
+        <h4 style={{ marginBottom: '8px' }}>Compte de connexion</h4>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label>Mot de passe initial</label>
+          <input
+            type="text"
+            name="motDePasse"
+            value={formData.motDePasse}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label>Rôle</label>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="EMPLOYE">Employé</option>
+            <option value="CHEF">Chef</option>
+            <option value="RH">RH</option>
+          </select>
+        </div>
+
+        <h4 style={{ marginBottom: '8px' }}>Informations employé</h4>
+
+        <div style={{ marginBottom: '12px' }}>
+          <label>Matricule</label>
+          <input
+            type="text"
+            name="matricule"
+            value={formData.matricule}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
         <div style={{ marginBottom: '12px' }}>
           <label>Nom</label>
           <input
@@ -115,6 +149,18 @@ function ModifierEmploye() {
         </div>
 
         <div style={{ marginBottom: '12px' }}>
+          <label>Date d'embauche</label>
+          <input
+            type="date"
+            name="dateEmbauche"
+            value={formData.dateEmbauche}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
           <label>Poste</label>
           <input
             type="text"
@@ -135,6 +181,7 @@ function ModifierEmploye() {
             required
             style={{ width: '100%', padding: '8px' }}
           >
+            <option value="">-- Sélectionner --</option>
             {services.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.code} - {s.nom}
@@ -143,27 +190,14 @@ function ModifierEmploye() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Statut</label>
-          <select
-            name="statut"
-            value={formData.statut}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
-          >
-            <option value="ACTIF">Actif</option>
-            <option value="INACTIF">Inactif</option>
-          </select>
-        </div>
-
         {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
 
         <button type="submit" disabled={chargement} style={{ padding: '10px 20px' }}>
-          {chargement ? 'Enregistrement...' : 'Enregistrer'}
+          {chargement ? 'Création...' : 'Créer'}
         </button>
       </form>
-    </Layout>
+    </LayoutAdmin>
   );
 }
 
-export default ModifierEmploye;
+export default AjouterEmploye;

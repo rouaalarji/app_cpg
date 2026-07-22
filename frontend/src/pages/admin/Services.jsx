@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
-import Layout from '../components/Layout';
-
+import api from '../../services/api';
+import LayoutAdmin from '../../components/layout/LayoutAdmin';
 function Services() {
   const [services, setServices] = useState([]);
   const [departements, setDepartements] = useState([]);
@@ -31,7 +30,7 @@ function Services() {
   }
 
   return (
-    <Layout>
+    <LayoutAdmin>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Départements & Services</h2>
         <div>
@@ -70,7 +69,7 @@ function Services() {
           Aucun service. Crée d'abord un département, puis un service.
         </p>
       )}
-    </Layout>
+    </LayoutAdmin>
   );
 }
 

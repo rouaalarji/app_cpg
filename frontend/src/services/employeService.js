@@ -24,5 +24,8 @@ async function remove(id) {
   const response = await api.delete(`/employes/${id}`);
   return response.data;
 }
-
-export { getAll, getById, create, update, remove };
+async function getMonEquipe() {
+  const response = await api.get('/employes/mon-equipe');
+  return response.data;
+}
+export { getAll, getById, create, update, remove,getMonEquipe };

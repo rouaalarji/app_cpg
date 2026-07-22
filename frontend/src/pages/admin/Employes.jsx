@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAll, remove } from '../services/employeService';
-import Layout from '../components/Layout';
-
+import { getAll, remove } from '../../services/employeService';
+import LayoutAdmin from '../../components/layout/LayoutAdmin';
 function Employes() {
   const [employes, setEmployes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -35,7 +34,7 @@ function Employes() {
   }
 
   return (
-    <Layout>
+    <LayoutAdmin>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Liste des employés</h2>
         <Link to="/employes/ajouter">
@@ -78,7 +77,7 @@ function Employes() {
           </tbody>
         </table>
       )}
-    </Layout>
+    </LayoutAdmin>
   );
 }
 

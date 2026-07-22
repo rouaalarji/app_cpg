@@ -59,14 +59,11 @@ function Register() {
 
         <div style={{ marginBottom: '12px' }}>
           <label>Rôle</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            style={{ width: '100%', padding: '8px' }}
-          >
+          <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%', padding: '8px' }}>
             <option value="EMPLOYE">Employé</option>
             <option value="CHEF">Chef</option>
             <option value="RH">RH</option>
+            <option value="ADMIN">Administrateur</option>
           </select>
         </div>
 

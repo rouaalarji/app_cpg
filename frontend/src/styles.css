@@ -1,0 +1,39 @@
+:root {
+  --cpg-primary: #0f172a;
+  --cpg-primary-light: #1e293b;
+  --cpg-accent: #1e40af;
+  --cpg-success: #16a34a;
+  --cpg-warning: #d97706;
+  --cpg-danger: #dc2626;
+  --cpg-bg: #f8fafc;
+  --cpg-text: #1e293b;
+}
+
+body {
+  background-color: var(--cpg-bg);
+  color: var(--cpg-text);
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+}
+
+/* Surcharge des boutons Bootstrap avec les couleurs CPG */
+.btn-cpg-primary {
+  background-color: var(--cpg-primary);
+  border-color: var(--cpg-primary);
+  color: #fff;
+}
+.btn-cpg-primary:hover {
+  background-color: var(--cpg-primary-light);
+  border-color: var(--cpg-primary-light);
+  color: #fff;
+}
+
+/* Cartes avec ombre douce, plus moderne que le défaut Bootstrap */
+.card-cpg {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: box-shadow 0.15s ease;
+}
+.card-cpg:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}

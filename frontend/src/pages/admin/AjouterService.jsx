@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import Layout from '../components/Layout';
-
+import api from '../../services/api';
+import LayoutAdmin from '../../components/layout/LayoutAdmin';
 function AjouterService() {
   const navigate = useNavigate();
   const [departements, setDepartements] = useState([]);
@@ -60,7 +59,7 @@ function AjouterService() {
   }
 
   return (
-    <Layout>
+    <LayoutAdmin>
       <h2>Ajouter un service</h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
@@ -125,7 +124,7 @@ function AjouterService() {
           {chargement ? 'Création...' : 'Créer'}
         </button>
       </form>
-    </Layout>
+    </LayoutAdmin>
   );
 }
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import Layout from '../components/Layout';
-
+import api from '../../services/api';
+import LayoutAdmin from '../../components/LayoutAdmin';
 function AjouterDepartement() {
   const navigate = useNavigate();
   const [nom, setNom] = useState('');
@@ -20,7 +19,7 @@ function AjouterDepartement() {
   }
 
   return (
-    <Layout>
+    <LayoutAdmin>
       <h2>Ajouter un département</h2>
       <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
         <div style={{ marginBottom: '12px' }}>
@@ -36,7 +35,7 @@ function AjouterDepartement() {
         {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
         <button type="submit" style={{ padding: '10px 20px' }}>Créer</button>
       </form>
-    </Layout>
+    </LayoutAdmin>
   );
 }
 
