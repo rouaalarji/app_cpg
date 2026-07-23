@@ -8,8 +8,8 @@ router.use(verifierToken);
 
 router.get('/', employeController.getAll);
 router.get('/:id', employeController.getById);
-router.post('/', autoriserRoles('RH'), employeController.create);
-router.put('/:id', autoriserRoles('RH'), employeController.update);
-router.delete('/:id', autoriserRoles('RH'), employeController.remove);
+router.post('/', autoriserRoles('RH','ADMIN'), employeController.create);
+router.put('/:id', autoriserRoles('RH','ADMIN'), employeController.update);
+router.delete('/:id', autoriserRoles('RH','ADMIN'), employeController.remove);
 
 module.exports = router;

@@ -7,8 +7,8 @@ router.use(verifierToken);
 
 router.get('/', departementController.getAll);
 router.get('/:id', departementController.getById);
-router.post('/', autoriserRoles('RH'), departementController.create);
-router.put('/:id', autoriserRoles('RH'), departementController.update);
-router.delete('/:id', autoriserRoles('RH'), departementController.remove);
+router.post('/', autoriserRoles('RH','ADMIN'), departementController.create);
+router.put('/:id', autoriserRoles('RH','ADMIN'), departementController.update);
+router.delete('/:id', autoriserRoles('RH','ADMIN'), departementController.remove);
 
 module.exports = router;

@@ -71,8 +71,18 @@ async function refuser(id, commentaire) {
     [commentaire || null, id]
   );
 }
-
+// Demandes de l'équipe d'un Chef, filtrées par service, en attente de son avis
+async function getParServiceEnAttente(serviceId) {
+  const [rows] = await db.query(`
+    SELECT dc.*, e.nom AS employe_nom, e.prenom AS employe_prenom, e.matricule
+    FROM demande_conge dc
+    JOIN employe e ON dc.employe_id = e.id
+    WHERE e.service_id = ? AND dc.statut = 'EN_ATTENTE'
+    ORDER BY dc.date_creation ASC
+  `, [serviceId]);
+  return rows;
+}
 module.exports = {
   getAll, getById, getByEmployeId, getEnAttentePourChef, getEnAttentePourRh,
-  create, validerParChef, validerParRh, refuser,
+  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,
 };

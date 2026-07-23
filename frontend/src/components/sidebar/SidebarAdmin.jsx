@@ -12,8 +12,7 @@ function SidebarAdmin({ ouvert, setOuvert }) {
     { to: '/admin/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
     { to: '/admin/employes', label: 'Employés', icone: 'bi-people' },
     { to: '/admin/services', label: 'Départements / Services', icone: 'bi-diagram-3' },
-    { to: '/admin/types-conge', label: 'Types de congés', icone: 'bi-list-check' },
-    { to: '/admin/absences', label: 'Absences', icone: 'bi-calendar-x' },
+{ to: '/admin/types-conge', label: 'Types de congés', icone: 'bi-list-check' },    { to: '/admin/absences', label: 'Absences', icone: 'bi-calendar-x' },
   ];
 
   const liensAdmin = [

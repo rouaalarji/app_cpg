@@ -147,5 +147,17 @@ async function refuser(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
-module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser };
+async function getMonEquipe(req, res) {
+  try {
+    const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const demandes = await demandeCongeModel.getParServiceEnAttente(rows[0].service_id);
+    res.json(demandes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser,getMonEquipe };

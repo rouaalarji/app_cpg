@@ -27,7 +27,7 @@ import Services from './pages/admin/Services';
 import AjouterService from './pages/admin/AjouterService';
 import DemandesConge from './pages/admin/DemandesConge';
 import GestionComptes from './pages/admin/GestionComptes';
-
+import TypesConge from './pages/admin/TypesConge';
 const TOUS_ROLES = ['EMPLOYE', 'CHEF', 'RH', 'ADMIN'];
 
 function App() {
@@ -60,7 +60,7 @@ function App() {
           <Route path="/admin/services" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Services /></RoleRoute>} />
           <Route path="/admin/services/ajouter" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><AjouterService /></RoleRoute>} />
           <Route path="/admin/comptes" element={<RoleRoute rolesAutorises={['ADMIN']}><GestionComptes /></RoleRoute>} />
-
+          <Route path="/admin/types-conge" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><TypesConge /></RoleRoute>} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

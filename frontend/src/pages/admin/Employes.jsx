@@ -37,7 +37,7 @@ function Employes() {
     <LayoutAdmin>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Liste des employés</h2>
-        <Link to="/employes/ajouter">
+        <Link to="/admin/employes/ajouter">
           <button style={{ padding: '8px 16px' }}>+ Ajouter un employé</button>
         </Link>
       </div>
@@ -66,8 +66,7 @@ function Employes() {
                 <td>{emp.poste}</td>
                 <td>{emp.statut}</td>
                 <td>
-                  <Link to={`/employes/modifier/${emp.id}`}>Modifier</Link>
-                  {' | '}
+                  <Link to={`/admin/employes/modifier/${emp.id}`}>Modifier</Link>                  {' | '}
                   <button onClick={() => handleSupprimer(emp.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>
                     Supprimer
                   </button>
