@@ -2,7 +2,7 @@ const serviceModel = require('../models/service_model');
 
 async function getAll(req, res) {
   try {
-    const services = await serviceModel.getAll();
+    const services = await serviceModel.getAllDetaille();
     res.json(services);
   } catch (err) {
     console.error(err);
@@ -54,15 +54,15 @@ async function update(req, res) {
 async function remove(req, res) {
   try {
     const service = await serviceModel.getById(req.params.id);
-    if (!service) {
-      return res.status(404).json({ message: 'Service non trouvé' });
-    }
+    if (!service) return res.status(404).json({ message: 'Service non trouvé' });
     await serviceModel.remove(req.params.id);
     res.json({ message: 'Service supprimé' });
   } catch (err) {
+    if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_ROW_IS_REFERENCED') {
+      return res.status(409).json({ message: 'Impossible de supprimer : des employés sont rattachés à ce service' });
+    }
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
 module.exports = { getAll, getById, create, update, remove };

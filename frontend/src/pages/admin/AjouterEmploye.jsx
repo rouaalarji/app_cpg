@@ -11,17 +11,18 @@ function AjouterEmploye() {
   const [chargement, setChargement] = useState(false);
 
   const [formData, setFormData] = useState({
-    email: '',
-    motDePasse: '',
-    role: 'EMPLOYE',
-    matricule: '',
-    nom: '',
-    prenom: '',
-    dateNaissance: '',
-    dateEmbauche: '',
-    poste: '',
-    serviceId: '',
-  });
+  email: '',
+  motDePasse: '',
+  role: 'EMPLOYE',
+  matricule: '',
+  nom: '',
+  prenom: '',
+  dateNaissance: '',
+  dateEmbauche: '',
+  poste: '',
+  serviceId: '',
+  zoneTravail: 'ADMINISTRATIF',
+});
 
   useEffect(() => {
     async function chargerServices() {
@@ -178,7 +179,16 @@ function AjouterEmploye() {
               className="form-control"
             />
           </div>
-
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Zone de travail</label>
+            <select name="zoneTravail" value={formData.zoneTravail} onChange={handleChange} className="form-select">
+              <option value="ADMINISTRATIF">Administratif</option>
+              <option value="TERRAIN">Terrain</option>
+              <option value="ATELIER">Atelier</option>
+              <option value="MAGASIN">Magasin</option>
+              <option value="LABORATOIRE">Laboratoire</option>
+            </select>
+          </div>
           <div className="mb-3">
             <label className="form-label small fw-semibold">Service</label>
             <select

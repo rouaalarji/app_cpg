@@ -2,7 +2,7 @@ const departementModel = require('../models/departement_model');
 
 async function getAll(req, res) {
   try {
-    const departements = await departementModel.getAll();
+    const departements = await departementModel.getAllDetaille();
     res.json(departements);
   } catch (err) {
     console.error(err);
@@ -13,9 +13,7 @@ async function getAll(req, res) {
 async function getById(req, res) {
   try {
     const departement = await departementModel.getById(req.params.id);
-    if (!departement) {
-      return res.status(404).json({ message: 'Département non trouvé' });
-    }
+    if (!departement) return res.status(404).json({ message: 'Département non trouvé' });
     res.json(departement);
   } catch (err) {
     console.error(err);
@@ -26,10 +24,8 @@ async function getById(req, res) {
 async function create(req, res) {
   try {
     const { nom } = req.body;
-    if (!nom) {
-      return res.status(400).json({ message: 'Le nom est requis' });
-    }
-    const id = await departementModel.create({ nom });
+    if (!nom) return res.status(400).json({ message: 'Le nom est requis' });
+    const id = await departementModel.create(req.body);
     res.status(201).json({ message: 'Département créé', id });
   } catch (err) {
     console.error(err);
@@ -40,9 +36,7 @@ async function create(req, res) {
 async function update(req, res) {
   try {
     const departement = await departementModel.getById(req.params.id);
-    if (!departement) {
-      return res.status(404).json({ message: 'Département non trouvé' });
-    }
+    if (!departement) return res.status(404).json({ message: 'Département non trouvé' });
     await departementModel.update(req.params.id, req.body);
     res.json({ message: 'Département mis à jour' });
   } catch (err) {
@@ -54,12 +48,13 @@ async function update(req, res) {
 async function remove(req, res) {
   try {
     const departement = await departementModel.getById(req.params.id);
-    if (!departement) {
-      return res.status(404).json({ message: 'Département non trouvé' });
-    }
+    if (!departement) return res.status(404).json({ message: 'Département non trouvé' });
     await departementModel.remove(req.params.id);
     res.json({ message: 'Département supprimé' });
   } catch (err) {
+    if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_ROW_IS_REFERENCED') {
+      return res.status(409).json({ message: 'Impossible de supprimer : des services sont rattachés à ce département' });
+    }
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }

@@ -15,23 +15,36 @@ async function getByDepartementId(departementId) {
   return rows;
 }
 
-async function create({ code, nom, departementId, responsableId }) {
+async function create({ code, nom, departementId, responsableId, description, statut }) {
   const [result] = await db.query(
-    'INSERT INTO service (code, nom, departement_id, responsable_id) VALUES (?, ?, ?, ?)',
-    [code, nom, departementId, responsableId || null]
+    'INSERT INTO service (code, nom, departement_id, responsable_id, description, statut) VALUES (?, ?, ?, ?, ?, ?)',
+    [code, nom, departementId, responsableId || null, description || null, statut || 'ACTIF']
   );
   return result.insertId;
 }
 
-async function update(id, { code, nom, departementId, responsableId }) {
+async function update(id, { code, nom, departementId, responsableId, description, statut }) {
   await db.query(
-    'UPDATE service SET code = ?, nom = ?, departement_id = ?, responsable_id = ? WHERE id = ?',
-    [code, nom, departementId, responsableId || null, id]
+    'UPDATE service SET code = ?, nom = ?, departement_id = ?, responsable_id = ?, description = ?, statut = ? WHERE id = ?',
+    [code, nom, departementId, responsableId || null, description || null, statut, id]
   );
 }
 
 async function remove(id) {
   await db.query('DELETE FROM service WHERE id = ?', [id]);
 }
-
-module.exports = { getAll, getById, getByDepartementId, create, update, remove };
+async function getAllDetaille() {
+  const [rows] = await db.query(`
+    SELECT 
+      s.*,
+      d.nom AS departement_nom,
+      CONCAT(e.prenom, ' ', e.nom) AS responsable_nom,
+      (SELECT COUNT(*) FROM employe WHERE service_id = s.id) AS nb_employes
+    FROM service s
+    JOIN departement d ON s.departement_id = d.id
+    LEFT JOIN employe e ON s.responsable_id = e.id
+    ORDER BY s.code ASC
+  `);
+  return rows;
+}
+module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille };

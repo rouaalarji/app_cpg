@@ -1,39 +1,99 @@
 :root {
-  --cpg-primary: #0f172a;
-  --cpg-primary-light: #1e293b;
-  --cpg-accent: #1e40af;
-  --cpg-success: #16a34a;
-  --cpg-warning: #d97706;
-  --cpg-danger: #dc2626;
+  --cpg-primary: #4f46e5;
+  --cpg-primary-hover: #4338ca;
+  --cpg-primary-light: #eef2ff;
+  --cpg-accent: #6366f1;
+  --cpg-success: #10b981;
+  --cpg-success-light: #d1fae5;
+  --cpg-warning: #f59e0b;
+  --cpg-warning-light: #fef3c7;
+  --cpg-danger: #ef4444;
+  --cpg-danger-light: #fee2e2;
   --cpg-bg: #f8fafc;
-  --cpg-text: #1e293b;
+  --cpg-surface: #ffffff;
+  --cpg-text: #0f172a;
+  --cpg-text-muted: #64748b;
+  --cpg-border: #e2e8f0;
 }
 
 body {
   background-color: var(--cpg-bg);
   color: var(--cpg-text);
-  font-family: 'Segoe UI', -apple-system, sans-serif;
+  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
 }
 
-/* Surcharge des boutons Bootstrap avec les couleurs CPG */
+/* Boutons */
 .btn-cpg-primary {
   background-color: var(--cpg-primary);
   border-color: var(--cpg-primary);
   color: #fff;
+  font-weight: 500;
+  border-radius: 8px;
 }
 .btn-cpg-primary:hover {
-  background-color: var(--cpg-primary-light);
-  border-color: var(--cpg-primary-light);
+  background-color: var(--cpg-primary-hover);
+  border-color: var(--cpg-primary-hover);
   color: #fff;
 }
 
-/* Cartes avec ombre douce, plus moderne que le défaut Bootstrap */
+/* Cartes */
 .card-cpg {
-  border: none;
+  border: 1px solid var(--cpg-border);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  background: var(--cpg-surface);
 }
 .card-cpg:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
+
+/* Tableau moderne, sans bordures lourdes */
+.table-cpg {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-cpg thead th {
+  background: transparent;
+  color: var(--cpg-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--cpg-border);
+  padding: 12px 16px;
+}
+.table-cpg tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--cpg-border);
+  vertical-align: middle;
+}
+.table-cpg tbody tr {
+  transition: background 0.1s ease;
+}
+.table-cpg tbody tr:hover {
+  background: var(--cpg-primary-light);
+}
+.table-cpg tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Avatar initiales */
+.avatar-initiales {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* Badges pastel modernes */
+.badge-cpg-success { background: var(--cpg-success-light); color: #047857; font-weight: 500; }
+.badge-cpg-warning { background: var(--cpg-warning-light); color: #b45309; font-weight: 500; }
+.badge-cpg-danger { background: var(--cpg-danger-light); color: #b91c1c; font-weight: 500; }
+.badge-cpg-neutral { background: #f1f5f9; color: var(--cpg-text-muted); font-weight: 500; }

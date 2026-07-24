@@ -12,7 +12,7 @@ function SidebarAdmin({ ouvert, setOuvert }) {
     { to: '/admin/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
     { to: '/admin/employes', label: 'Employés', icone: 'bi-people' },
     { to: '/admin/services', label: 'Départements / Services', icone: 'bi-diagram-3' },
-{ to: '/admin/types-conge', label: 'Types de congés', icone: 'bi-list-check' },    { to: '/admin/absences', label: 'Absences', icone: 'bi-calendar-x' },
+    { to: '/admin/types-conge', label: 'Types de congés', icone: 'bi-list-check' }, { to: '/admin/absences', label: 'Absences', icone: 'bi-calendar-x' },
   ];
 
   const liensAdmin = [
@@ -52,9 +52,8 @@ function SidebarAdmin({ ouvert, setOuvert }) {
           <Link
             key={lien.to}
             to={lien.to}
-            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${
-              location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
-            }`}
+            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
+              }`}
             onMouseEnter={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
             onMouseLeave={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'transparent'; }}
           >

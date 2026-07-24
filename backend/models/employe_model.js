@@ -19,25 +19,24 @@ async function getByChefId(chefId) {
   const [rows] = await db.query('SELECT * FROM employe WHERE chef_id = ?', [chefId]);
   return rows;
 }
-
 async function create(employe) {
-  const { utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId } = employe;
+  const { utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId, zoneTravail } = employe;
   const [result] = await db.query(
     `INSERT INTO employe 
-      (utilisateur_id, matricule, nom, prenom, date_naissance, date_embauche, poste, service_id, chef_id) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId || null]
+      (utilisateur_id, matricule, nom, prenom, date_naissance, date_embauche, poste, service_id, chef_id, zone_travail) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId || null, zoneTravail || 'ADMINISTRATIF']
   );
   return result.insertId;
 }
 
 async function update(id, employe) {
-  const { nom, prenom, dateNaissance, poste, serviceId, chefId, statut } = employe;
+  const { nom, prenom, dateNaissance, poste, serviceId, chefId, statut, zoneTravail } = employe;
   await db.query(
     `UPDATE employe 
-     SET nom = ?, prenom = ?, date_naissance = ?, poste = ?, service_id = ?, chef_id = ?, statut = ?
+     SET nom = ?, prenom = ?, date_naissance = ?, poste = ?, service_id = ?, chef_id = ?, statut = ?, zone_travail = ?
      WHERE id = ?`,
-    [nom, prenom, dateNaissance, poste, serviceId, chefId || null, statut, id]
+    [nom, prenom, dateNaissance, poste, serviceId, chefId || null, statut, zoneTravail, id]
   );
 }
 

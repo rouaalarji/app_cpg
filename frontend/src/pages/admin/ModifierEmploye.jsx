@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getById, update } from '../../services/employeService';
 import api from '../../services/api';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
+
 function ModifierEmploye() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ function ModifierEmploye() {
     poste: '',
     serviceId: '',
     statut: 'ACTIF',
+    zoneTravail: 'ADMINISTRATIF',
   });
 
   useEffect(() => {
@@ -35,6 +37,7 @@ function ModifierEmploye() {
           poste: employe.poste,
           serviceId: employe.service_id,
           statut: employe.statut,
+          zoneTravail: employe.zone_travail,
         });
       } catch (err) {
         setErreur('Impossible de charger cet employé');
@@ -56,11 +59,10 @@ function ModifierEmploye() {
 
     try {
       await update(id, formData);
-      navigate('/employes');
+      navigate('/admin/employes');
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur lors de la modification';
       setErreur(message);
-    } finally {
       setChargement(false);
     }
   }
@@ -75,92 +77,109 @@ function ModifierEmploye() {
 
   return (
     <LayoutAdmin>
-      <h2>Modifier un employé</h2>
+      <h2 className="fw-bold mb-3">Modifier un employé</h2>
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
-        <div style={{ marginBottom: '12px' }}>
-          <label>Nom</label>
-          <input
-            type="text"
-            name="nom"
-            value={formData.nom}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px' }}
-          />
-        </div>
+      <div className="card card-cpg p-4" style={{ maxWidth: '550px' }}>
+        <form onSubmit={handleSubmit}>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <label className="form-label small fw-semibold">Nom</label>
+              <input
+                type="text"
+                name="nom"
+                value={formData.nom}
+                onChange={handleChange}
+                required
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label small fw-semibold">Prénom</label>
+              <input
+                type="text"
+                name="prenom"
+                value={formData.prenom}
+                onChange={handleChange}
+                required
+                className="form-control"
+              />
+            </div>
+          </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Prénom</label>
-          <input
-            type="text"
-            name="prenom"
-            value={formData.prenom}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px' }}
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Date de naissance</label>
+            <input
+              type="date"
+              name="dateNaissance"
+              value={formData.dateNaissance}
+              onChange={handleChange}
+              className="form-control"
+            />
+          </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Date de naissance</label>
-          <input
-            type="date"
-            name="dateNaissance"
-            value={formData.dateNaissance}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Poste</label>
+            <input
+              type="text"
+              name="poste"
+              value={formData.poste}
+              onChange={handleChange}
+              required
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Zone de travail</label>
+            <select name="zoneTravail" value={formData.zoneTravail} onChange={handleChange} className="form-select">
+              <option value="ADMINISTRATIF">Administratif</option>
+              <option value="TERRAIN">Terrain</option>
+              <option value="ATELIER">Atelier</option>
+              <option value="MAGASIN">Magasin</option>
+              <option value="LABORATOIRE">Laboratoire</option>
+            </select>
+          </div>
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Service</label>
+            <select
+              name="serviceId"
+              value={formData.serviceId}
+              onChange={handleChange}
+              required
+              className="form-select"
+            >
+              {services.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.code} - {s.nom}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Poste</label>
-          <input
-            type="text"
-            name="poste"
-            value={formData.poste}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px' }}
-          />
-        </div>
+          <div className="mb-4">
+            <label className="form-label small fw-semibold">Statut</label>
+            <select
+              name="statut"
+              value={formData.statut}
+              onChange={handleChange}
+              className="form-select"
+            >
+              <option value="ACTIF">Actif</option>
+              <option value="INACTIF">Inactif</option>
+            </select>
+          </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Service</label>
-          <select
-            name="serviceId"
-            value={formData.serviceId}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px' }}
-          >
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.code} - {s.nom}
-              </option>
-            ))}
-          </select>
-        </div>
+          {erreur && <div className="alert alert-danger py-2 small">{erreur}</div>}
 
-        <div style={{ marginBottom: '12px' }}>
-          <label>Statut</label>
-          <select
-            name="statut"
-            value={formData.statut}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
-          >
-            <option value="ACTIF">Actif</option>
-            <option value="INACTIF">Inactif</option>
-          </select>
-        </div>
-
-        {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
-
-        <button type="submit" disabled={chargement} style={{ padding: '10px 20px' }}>
-          {chargement ? 'Enregistrement...' : 'Enregistrer'}
-        </button>
-      </form>
+          <div className="d-flex gap-2">
+            <button type="submit" disabled={chargement} className="btn btn-cpg-primary px-4">
+              {chargement ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+            <button type="button" onClick={() => navigate('/admin/employes')} className="btn btn-outline-secondary">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
     </LayoutAdmin>
   );
 }
