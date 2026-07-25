@@ -43,5 +43,18 @@ async function update(id, employe) {
 async function remove(id) {
   await db.query('DELETE FROM employe WHERE id = ?', [id]);
 }
-
-module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove };
+async function getServiceIdParUtilisateur(utilisateurId) {
+  const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [utilisateurId]);
+  return rows[0]?.service_id;
+}
+async function getByServiceIdAvecPresence(serviceId, date) {
+  const [rows] = await db.query(`
+    SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart
+    FROM employe e
+    LEFT JOIN presence p ON p.employe_id = e.id AND p.date = ?
+    WHERE e.service_id = ?
+    ORDER BY e.nom
+  `, [date, serviceId]);
+  return rows;
+}
+module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence };

@@ -96,5 +96,18 @@ async function remove(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
-module.exports = { getAll, getById, create, update, remove };
+async function getMonEquipe(req, res) {
+  try {
+    const serviceId = await employeModel.getServiceIdParUtilisateur(req.utilisateur.id);
+    if (!serviceId) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const today = new Date().toISOString().split('T')[0];
+    const equipe = await employeModel.getByServiceIdAvecPresence(serviceId, today);
+    res.json(equipe);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, create, update, remove, getMonEquipe };
