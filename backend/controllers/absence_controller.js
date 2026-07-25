@@ -70,5 +70,23 @@ async function update(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+async function getAllAdmin(req, res) {
+  try {
+    const absences = await absenceModel.getAllDetaille();
+    res.json(absences);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
 
-module.exports = { getAll, getMesAbsences, create, update };
+async function getStats(req, res) {
+  try {
+    const stats = await absenceModel.getStats();
+    res.json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats };

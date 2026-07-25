@@ -5,6 +5,7 @@ import LayoutAdmin from '../../components/layout/LayoutAdmin';
 function GestionComptes() {
   const [comptes, setComptes] = useState([]);
   const [chargement, setChargement] = useState(true);
+  const [recherche, setRecherche] = useState('');
 
   async function charger() {
     try {
@@ -37,27 +38,47 @@ function GestionComptes() {
     }
   }
 
+  const filtres = comptes.filter((c) => c.email.toLowerCase().includes(recherche.toLowerCase()));
+
   return (
     <LayoutAdmin>
-      <h2 className="fw-bold mb-3">Gestion des comptes</h2>
+      <h2 className="fw-bold mb-1">Gestion des comptes</h2>
+      <p className="text-muted mb-4">{comptes.length} compte(s) au total</p>
 
-      {chargement && <p>Chargement...</p>}
+      <div className="card-cpg p-0 overflow-hidden">
+        <div className="p-3 border-bottom" style={{ borderColor: 'var(--cpg-border)' }}>
+          <div className="input-group" style={{ maxWidth: '320px' }}>
+            <span className="input-group-text bg-white border-end-0" style={{ borderRadius: '8px 0 0 8px' }}>
+              <i className="bi bi-search text-muted"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Rechercher par email..."
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              style={{ borderRadius: '0 8px 8px 0' }}
+            />
+          </div>
+        </div>
 
-      {!chargement && (
-        <div className="table-responsive">
-          <table className="table table-hover align-middle bg-white card-cpg">
+        {chargement && <p className="p-4 mb-0 text-muted">Chargement...</p>}
+
+        {!chargement && (
+          <table className="table table-cpg mb-0">
             <thead>
               <tr>
                 <th>Email</th>
                 <th>Rôle</th>
+                <th>Fiche employé</th>
                 <th>Statut</th>
-                <th>Actions</th>
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {comptes.map((c) => (
+              {filtres.map((c) => (
                 <tr key={c.id}>
-                  <td>{c.email}</td>
+                  <td className="fw-semibold">{c.email}</td>
                   <td>
                     <select
                       value={c.role}
@@ -72,11 +93,18 @@ function GestionComptes() {
                     </select>
                   </td>
                   <td>
-                    <span className={`badge ${c.actif ? 'bg-success' : 'bg-secondary'}`}>
+                    {c.employe_id ? (
+                      <span className="badge badge-cpg-success">Liée</span>
+                    ) : (
+                      <span className="badge badge-cpg-warning">Aucune (orphelin)</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`badge ${c.actif ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
                       {c.actif ? 'Actif' : 'Désactivé'}
                     </span>
                   </td>
-                  <td>
+                  <td className="text-end">
                     <button onClick={() => handleToggleActif(c.id, c.actif)} className="btn btn-sm btn-outline-secondary">
                       {c.actif ? 'Désactiver' : 'Activer'}
                     </button>
@@ -85,8 +113,8 @@ function GestionComptes() {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </LayoutAdmin>
   );
 }

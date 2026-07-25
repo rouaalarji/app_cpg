@@ -33,5 +33,46 @@ async function update(id, { motif, justificatif, statut }) {
     [motif, justificatif, statut, id]
   );
 }
+async function getAllDetaille() {
+  const [rows] = await db.query(`
+    SELECT a.*, e.nom AS employe_nom, e.prenom AS employe_prenom, e.matricule, s.nom AS service_nom
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    JOIN service s ON e.service_id = s.id
+    ORDER BY a.date_debut DESC
+  `);
+  return rows;
+}
 
-module.exports = { getAll, getById, getByEmployeId, create, update };
+async function getStats() {
+  const [[{ totalNonJustifiees }]] = await db.query(
+    "SELECT COUNT(*) AS totalNonJustifiees FROM absence WHERE statut = 'NON_JUSTIFIEE'"
+  );
+
+  const [[{ totalCeMois }]] = await db.query(
+    `SELECT COUNT(*) AS totalCeMois FROM absence 
+     WHERE MONTH(date_debut) = MONTH(CURDATE()) AND YEAR(date_debut) = YEAR(CURDATE())`
+  );
+
+  const [topEmployes] = await db.query(`
+    SELECT e.nom, e.prenom, COUNT(*) AS nb_absences
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    GROUP BY a.employe_id
+    ORDER BY nb_absences DESC
+    LIMIT 5
+  `);
+
+  const [parService] = await db.query(`
+    SELECT s.nom AS service_nom, COUNT(*) AS nb_absences
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    JOIN service s ON e.service_id = s.id
+    GROUP BY s.id
+    ORDER BY nb_absences DESC
+  `);
+
+  return { totalNonJustifiees, totalCeMois, topEmployes, parService };
+}
+
+module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats };

@@ -20,5 +20,34 @@ async function create({ email, motDePasse, role }) {
   );
   return result.insertId;
 }
+async function getAll() {
+  const [rows] = await db.query(`
+    SELECT 
+      u.id, u.email, u.role, u.actif, u.date_creation,
+      e.id AS employe_id
+    FROM utilisateur u
+    LEFT JOIN employe e ON e.utilisateur_id = u.id
+    ORDER BY u.date_creation DESC
+  `);
+  return rows;
+}
+async function getAll() {
+  const [rows] = await db.query(`
+    SELECT 
+      u.id, u.email, u.role, u.actif, u.date_creation,
+      e.id AS employe_id
+    FROM utilisateur u
+    LEFT JOIN employe e ON e.utilisateur_id = u.id
+    ORDER BY u.date_creation DESC
+  `);
+  return rows;
+}
 
-module.exports = { findByEmail, findById, create };
+async function updateRole(id, role) {
+  await db.query('UPDATE utilisateur SET role = ? WHERE id = ?', [role, id]);
+}
+
+async function updateStatut(id, actif) {
+  await db.query('UPDATE utilisateur SET actif = ? WHERE id = ?', [actif, id]);
+}
+module.exports = { findByEmail, findById, create, getAll, updateRole, updateStatut };

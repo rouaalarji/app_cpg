@@ -10,6 +10,7 @@ const presenceRoutes = require('./routes/presence_routes');
 const absenceRoutes = require('./routes/absence_routes');
 const departementRoutes = require('./routes/departement_routes');
 const dashboardRoutes = require('./routes/dashboard_routes');
+const utilisateurRoutes = require('./routes/utilisateur_routes');
 const app = express();
 
 app.use(cors());
@@ -24,6 +25,8 @@ app.use('/api/presences', presenceRoutes);
 app.use('/api/absences', absenceRoutes);
 app.use('/api/departements', departementRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/utilisateurs', utilisateurRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
