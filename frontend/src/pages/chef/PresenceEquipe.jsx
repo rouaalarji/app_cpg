@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getMonEquipe } from '../../services/employeService';
 import { marquerPresence } from '../../services/presenceService';
+import { getStatsChef } from '../../services/dashboardService';
 import api from '../../services/api';
 import LayoutChef from '../../components/layout/LayoutChef';
+
+function aujourdHuiStr() {
+  return new Date().toISOString().split('T')[0];
+}
 
 function formatDateAffichage(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
@@ -10,25 +15,29 @@ function formatDateAffichage(dateStr) {
 }
 
 function PresenceEquipe() {
-  const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
+  const dateSelectionnee = aujourdHuiStr(); // verrouillé sur aujourd'hui uniquement
+
   const [serviceInfo, setServiceInfo] = useState(null);
   const [equipe, setEquipe] = useState([]);
-  const [pointages, setPointages] = useState({}); // état local éditable, non encore sauvegardé
+  const [pointages, setPointages] = useState({});
+  const [stats, setStats] = useState(null);
   const [chargement, setChargement] = useState(true);
   const [enregistrement, setEnregistrement] = useState(false);
   const [erreur, setErreur] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
 
-  const charger = useCallback(async (date) => {
+  const charger = useCallback(async () => {
     setChargement(true);
     setErreur('');
     try {
-      const [infoRes, membres] = await Promise.all([
+      const [infoRes, membres, statsData] = await Promise.all([
         api.get('/services/mon-service'),
-        getMonEquipe(date),
+        getMonEquipe(dateSelectionnee),
+        getStatsChef(),
       ]);
       setServiceInfo(infoRes.data);
       setEquipe(membres);
+      setStats(statsData);
 
       const snapshot = {};
       membres.forEach((emp) => {
@@ -45,11 +54,11 @@ function PresenceEquipe() {
     } finally {
       setChargement(false);
     }
-  }, []);
+  }, [dateSelectionnee]);
 
   useEffect(() => {
-    charger(dateSelectionnee);
-  }, [dateSelectionnee, charger]);
+    charger();
+  }, [charger]);
 
   function heureActuelle() {
     return new Date().toTimeString().split(' ')[0];
@@ -91,7 +100,7 @@ function PresenceEquipe() {
         });
       }
       setMessageSucces(`Pointage enregistré pour ${modifies.length} employé(s).`);
-      await charger(dateSelectionnee);
+      await charger();
       setTimeout(() => setMessageSucces(''), 4000);
     } catch (err) {
       setErreur(err.response?.data?.message || "Erreur lors de l'enregistrement");
@@ -101,7 +110,7 @@ function PresenceEquipe() {
   }
 
   function handleReinitialiser() {
-    charger(dateSelectionnee);
+    charger();
   }
 
   function handleImprimer() {
@@ -153,8 +162,11 @@ function PresenceEquipe() {
             <input
               type="date"
               value={dateSelectionnee}
-              onChange={(e) => setDateSelectionnee(e.target.value)}
+              min={dateSelectionnee}
+              max={dateSelectionnee}
+              disabled
               className="form-control"
+              title="Le pointage ne peut se faire que pour la journée en cours"
             />
           </div>
         </div>
@@ -191,7 +203,7 @@ function PresenceEquipe() {
       {chargement && <p>Chargement...</p>}
 
       {!chargement && (
-        <div className="card-cpg p-0 overflow-hidden">
+        <div className="card-cpg p-0 overflow-hidden mb-4">
           <table className="table table-cpg mb-0">
             <thead>
               <tr>
@@ -220,25 +232,13 @@ function PresenceEquipe() {
                       </span>
                     </td>
                     <td className="text-end">
-                      <button
-                        onClick={() => marquerArrivee(emp.id)}
-                        disabled={aArrivee || estAbsent}
-                        className="btn btn-sm btn-outline-success me-1"
-                      >
+                      <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-success me-1">
                         Arrivée
                       </button>
-                      <button
-                        onClick={() => marquerDepart(emp.id)}
-                        disabled={!aArrivee || !!p.heureDepart || estAbsent}
-                        className="btn btn-sm btn-outline-primary me-1"
-                      >
+                      <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent} className="btn btn-sm btn-outline-primary me-1">
                         Départ
                       </button>
-                      <button
-                        onClick={() => marquerAbsent(emp.id)}
-                        disabled={estAbsent}
-                        className="btn btn-sm btn-outline-danger"
-                      >
+                      <button onClick={() => marquerAbsent(emp.id)} disabled={estAbsent} className="btn btn-sm btn-outline-danger">
                         Absent
                       </button>
                     </td>
@@ -247,6 +247,35 @@ function PresenceEquipe() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Résumé de la journée */}
+      {!chargement && stats && (
+        <div className="card-cpg p-4">
+          <h6 className="fw-bold mb-3">Résumé de la journée</h6>
+          <div className="row g-3 text-center">
+            <div className="col">
+              <p className="text-muted small mb-1">Total employés</p>
+              <p className="fs-4 fw-bold mb-0">{stats.totalEmployes}</p>
+            </div>
+            <div className="col">
+              <p className="text-muted small mb-1">Présents</p>
+              <p className="fs-4 fw-bold mb-0" style={{ color: 'var(--cpg-success)' }}>{stats.presents}</p>
+            </div>
+            <div className="col">
+              <p className="text-muted small mb-1">Absents</p>
+              <p className="fs-4 fw-bold mb-0" style={{ color: 'var(--cpg-danger)' }}>{stats.absents}</p>
+            </div>
+            <div className="col">
+              <p className="text-muted small mb-1">Retards</p>
+              <p className="fs-4 fw-bold mb-0" style={{ color: 'var(--cpg-warning)' }}>{stats.retards}</p>
+            </div>
+            <div className="col">
+              <p className="text-muted small mb-1">En congé</p>
+              <p className="fs-4 fw-bold mb-0" style={{ color: 'var(--cpg-primary)' }}>{stats.enConge}</p>
+            </div>
+          </div>
         </div>
       )}
     </LayoutChef>
