@@ -58,4 +58,8 @@ async function getDetailParResponsable(employeId) {
   `, [employeId]);
   return rows[0];
 }
-module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille, getDetailParResponsable };
+async function getServiceParResponsable(employeId) {
+  const [rows] = await db.query('SELECT * FROM service WHERE chef_id = ?', [employeId]);
+  return rows[0];
+}
+module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille, getDetailParResponsable, getServiceParResponsable };

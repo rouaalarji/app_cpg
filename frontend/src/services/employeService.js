@@ -24,8 +24,8 @@ async function remove(id) {
   const response = await api.delete(`/employes/${id}`);
   return response.data;
 }
-async function getMonEquipe() {
-  const response = await api.get('/employes/mon-equipe');
+async function getMonEquipe(date) {
+  const response = await api.get('/employes/mon-equipe', { params: { date } });
   return response.data;
 }
 export { getAll, getById, create, update, remove,getMonEquipe };

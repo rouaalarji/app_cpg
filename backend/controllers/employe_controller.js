@@ -1,7 +1,8 @@
+const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const employeModel = require('../models/employe_model');
 const utilisateurModel = require('../models/utilisateur_model');
-
+const serviceModel = require('../models/service_model');
 async function getAll(req, res) {
   try {
     const employes = await employeModel.getAll();
@@ -98,12 +99,19 @@ async function remove(req, res) {
 }
 async function getMonEquipe(req, res) {
   try {
-    const serviceId = await employeModel.getServiceIdParUtilisateur(req.utilisateur.id);
-    if (!serviceId) {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
-    const today = new Date().toISOString().split('T')[0];
-    const equipe = await employeModel.getByServiceIdAvecPresence(serviceId, today);
+    const monEmployeId = rows[0].id;
+
+    const service = await serviceModel.getServiceParResponsable(monEmployeId);
+    if (!service) {
+      return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
+    }
+
+    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date);
     res.json(equipe);
   } catch (err) {
     console.error(err);

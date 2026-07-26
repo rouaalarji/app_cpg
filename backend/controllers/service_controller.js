@@ -1,5 +1,5 @@
 const serviceModel = require('../models/service_model');
-
+const db = require('../config/database');
 async function getAll(req, res) {
   try {
     const services = await serviceModel.getAllDetaille();
