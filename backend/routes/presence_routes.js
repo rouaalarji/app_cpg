@@ -10,5 +10,5 @@ router.get('/mes-presences', presenceController.getMesPresences);
 router.post('/check-in', presenceController.checkIn);
 router.post('/check-out', presenceController.checkOut);
 router.post('/', autoriserRoles('RH', 'CHEF'), presenceController.create);
-
+router.get('/employe/:employeId', autoriserRoles('RH', 'CHEF'), presenceController.getByEmploye);
 module.exports = router;

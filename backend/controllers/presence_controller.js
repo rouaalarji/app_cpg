@@ -94,5 +94,13 @@ async function create(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
-module.exports = { getAll, getMesPresences, checkIn, checkOut, create };
+async function getByEmploye(req, res) {
+  try {
+    const presences = await presenceModel.getByEmployeId(req.params.employeId);
+    res.json(presences);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesPresences, checkIn, checkOut, create, getByEmploye };

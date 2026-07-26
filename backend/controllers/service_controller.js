@@ -65,4 +65,20 @@ async function remove(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getById, create, update, remove };
+async function getMonService(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const detail = await serviceModel.getDetailParResponsable(rows[0].id);
+    if (!detail) {
+      return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
+    }
+    res.json(detail);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, create, update, remove, getMonService };

@@ -47,4 +47,15 @@ async function getAllDetaille() {
   `);
   return rows;
 }
-module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille };
+async function getDetailParResponsable(employeId) {
+  const [rows] = await db.query(`
+    SELECT s.id, s.code, s.nom AS service_nom, d.nom AS departement_nom,
+           CONCAT(e.prenom, ' ', e.nom) AS chef_nom
+    FROM service s
+    JOIN departement d ON s.departement_id = d.id
+    JOIN employe e ON s.chef_id = e.id
+    WHERE s.chef_id = ?
+  `, [employeId]);
+  return rows[0];
+}
+module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille, getDetailParResponsable };

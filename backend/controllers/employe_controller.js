@@ -110,4 +110,13 @@ async function getMonEquipe(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getById, create, update, remove, getMonEquipe };
+async function getChefs(req, res) {
+  try {
+    const chefs = await employeModel.getEmployesAvecRoleChef();
+    res.json(chefs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, create, update, remove, getMonEquipe, getChefs };

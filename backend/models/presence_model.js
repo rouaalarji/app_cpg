@@ -18,23 +18,26 @@ async function getByEmployeId(employeId) {
   return rows;
 }
 
-async function getByEmployeAndDate(employeId, date) {
+async function getByEmployeId(employeId) {
   const [rows] = await db.query(
-    'SELECT * FROM presence WHERE employe_id = ? AND date = ?',
-    [employeId, date]
+    'SELECT * FROM presence WHERE employe_id = ? ORDER BY date DESC',
+    [employeId]
   );
-  return rows[0];
+  return rows;
 }
 
 async function create({ employeId, date, heureArrivee, heureDepart, statut }) {
   const [result] = await db.query(
     `INSERT INTO presence (employe_id, date, heure_arrivee, heure_depart, statut)
-     VALUES (?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       heure_arrivee = COALESCE(VALUES(heure_arrivee), heure_arrivee),
+       heure_depart = COALESCE(VALUES(heure_depart), heure_depart),
+       statut = VALUES(statut)`,
     [employeId, date, heureArrivee || null, heureDepart || null, statut || 'PRESENT']
   );
-  return result.insertId;
+  return result.insertId || null;
 }
-
 async function updateHeureDepart(id, heureDepart) {
   await db.query('UPDATE presence SET heure_depart = ? WHERE id = ?', [heureDepart, id]);
 }
@@ -46,4 +49,4 @@ async function update(id, { heureArrivee, heureDepart, statut }) {
   );
 }
 
-module.exports = { getAll, getById, getByEmployeId, getByEmployeAndDate, create, updateHeureDepart, update };
+module.exports = { getAll, getById, getByEmployeId,  create, updateHeureDepart, update };

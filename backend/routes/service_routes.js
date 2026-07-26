@@ -10,5 +10,5 @@ router.get('/:id', serviceController.getById);
 router.post('/', autoriserRoles('RH','ADMIN'), serviceController.create);
 router.put('/:id', autoriserRoles('RH','ADMIN'), serviceController.update);
 router.delete('/:id', autoriserRoles('RH','ADMIN'), serviceController.remove);
-
+router.get('/mon-service', autoriserRoles('CHEF'), serviceController.getMonService);
 module.exports = router;

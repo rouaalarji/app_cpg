@@ -13,7 +13,9 @@ const pool = mysql.createPool({
     // Nombre maximal de connexions simultanées dans le pool
   connectionLimit: 10,
   // nb maximal de requete en attente est attente illimitée 
-  queueLimit: 0
+  queueLimit: 0,
+  dateStrings: true,
+
 });
 
 // version "Promise" du pool, pour pouvoir utiliser async/await

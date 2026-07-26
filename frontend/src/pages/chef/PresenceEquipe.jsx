@@ -36,8 +36,9 @@ function PresenceEquipe() {
   useEffect(() => {
     charger();
   }, []);
-
+ 
   async function handleMarquerArrivee(employeId) {
+    console.log('Clic Arrivée pour', employeId);
     const heure = new Date().toTimeString().split(' ')[0];
     try {
       await marquerPresence({ employeId, date: aujourdHui(), heureArrivee: heure, statut: 'PRESENT' });
@@ -48,21 +49,21 @@ function PresenceEquipe() {
   }
 
   async function handleMarquerDepart(employeId) {
-    const heure = new Date().toTimeString().split(' ')[0];
-    const presenceExistante = presencesDuJour[employeId];
-    try {
-      await marquerPresence({
-        employeId,
-        date: aujourdHui(),
-        heureArrivee: presenceExistante?.heure_arrivee || null,
-        heureDepart: heure,
-        statut: presenceExistante?.statut || 'PRESENT',
-      });
-      charger();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Erreur');
-    }
+  const heure = new Date().toTimeString().split(' ')[0];
+  const presenceExistante = presencesDuJour[employeId];
+  try {
+    await marquerPresence({
+      employeId,
+      date: aujourdHui(),
+      heureArrivee: presenceExistante?.heure_arrivee || null,
+      heureDepart: heure,
+      statut: presenceExistante?.statut || 'PRESENT',
+    });
+    charger();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Erreur');
   }
+}
 
   async function handleMarquerAbsent(employeId) {
     try {

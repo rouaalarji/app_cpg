@@ -57,4 +57,13 @@ async function getByServiceIdAvecPresence(serviceId, date) {
   `, [date, serviceId]);
   return rows;
 }
-module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence };
+async function getEmployesAvecRoleChef() {
+  const [rows] = await db.query(`
+    SELECT e.id, e.nom, e.prenom, e.matricule
+    FROM employe e
+    JOIN utilisateur u ON e.utilisateur_id = u.id
+    WHERE u.role = 'CHEF'
+  `);
+  return rows;
+}
+module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence, getEmployesAvecRoleChef };
