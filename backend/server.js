@@ -26,7 +26,7 @@ app.use('/api/absences', absenceRoutes);
 app.use('/api/departements', departementRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/utilisateurs', utilisateurRoutes);
-
+app.use('/uploads', express.static('uploads'));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);

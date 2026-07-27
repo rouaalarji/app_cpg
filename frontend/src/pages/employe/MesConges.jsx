@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { getMesDemandes, annuler } from '../../services/demandeCongeService';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
 
-const COULEURS_STATUT = {
-  EN_ATTENTE: 'bg-warning text-dark',
-  VALIDE_CHEF: 'bg-primary',
-  VALIDE_RH: 'bg-success',
-  REFUSE: 'bg-danger',
+const BADGE_STATUT = {
+  EN_ATTENTE: 'badge-cpg-warning',
+  VALIDE_CHEF: 'badge-cpg-neutral',
+  VALIDE_RH: 'badge-cpg-success',
+  REFUSE: 'badge-cpg-danger',
 };
 
 const LABELS_STATUT = {
@@ -49,23 +49,30 @@ function MesConges() {
 
   return (
     <LayoutEmploye>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="fw-bold mb-0">Mes congés</h2>
-        <Link to="/employe/mes-conges/demander" className="btn btn-cpg-primary">
-          <i className="bi bi-plus-lg me-1"></i> Nouvelle demande
+      <div className="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h2 className="fw-bold mb-1">Mes congés</h2>
+          <p className="text-muted mb-0">{demandes.length} demande(s) au total</p>
+        </div>
+        <Link to="/employe/mes-conges/demander" className="btn btn-cpg-primary d-flex align-items-center gap-1">
+          <i className="bi bi-plus-lg"></i> Nouvelle demande
         </Link>
       </div>
 
-      {chargement && <p>Chargement...</p>}
       {erreur && <div className="alert alert-danger">{erreur}</div>}
 
-      {!chargement && demandes.length === 0 && (
-        <p className="text-muted">Aucune demande pour l'instant.</p>
-      )}
+      <div className="card-cpg p-0 overflow-hidden">
+        {chargement && <p className="p-4 mb-0 text-muted">Chargement...</p>}
 
-      {!chargement && demandes.length > 0 && (
-        <div className="table-responsive">
-          <table className="table table-hover align-middle bg-white card-cpg">
+        {!chargement && demandes.length === 0 && (
+          <div className="p-5 text-center text-muted">
+            <i className="bi bi-calendar-check fs-1 mb-2 d-block"></i>
+            Aucune demande pour l'instant.
+          </div>
+        )}
+
+        {!chargement && demandes.length > 0 && (
+          <table className="table table-cpg mb-0">
             <thead>
               <tr>
                 <th>Dates</th>
@@ -73,7 +80,7 @@ function MesConges() {
                 <th>Motif</th>
                 <th>Statut</th>
                 <th>Commentaire refus</th>
-                <th>Actions</th>
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -83,14 +90,14 @@ function MesConges() {
                   <td>{d.nb_jours}</td>
                   <td>{d.motif || '—'}</td>
                   <td>
-                    <span className={`badge ${COULEURS_STATUT[d.statut]}`}>
+                    <span className={`badge ${BADGE_STATUT[d.statut]}`}>
                       {LABELS_STATUT[d.statut]}
                     </span>
                   </td>
-                  <td>{d.commentaire_refus || '—'}</td>
-                  <td>
+                  <td className="text-muted">{d.commentaire_refus || '—'}</td>
+                  <td className="text-end">
                     {d.statut === 'EN_ATTENTE' && (
-                      <button onClick={() => handleAnnuler(d.id)} className="btn btn-sm btn-outline-danger">
+                      <button onClick={() => handleAnnuler(d.id)} className="btn btn-sm btn-light text-danger">
                         Annuler
                       </button>
                     )}
@@ -99,8 +106,8 @@ function MesConges() {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </LayoutEmploye>
   );
 }

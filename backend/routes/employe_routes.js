@@ -7,6 +7,7 @@ router.use(verifierToken);
 
 router.get('/chefs', autoriserRoles('RH', 'ADMIN'), employeController.getChefs);
 router.get('/mon-equipe', autoriserRoles('CHEF'), employeController.getMonEquipe);
+router.get('/mon-profil', employeController.getMonProfil);
 router.get('/', autoriserRoles('RH', 'ADMIN'), employeController.getAll);
 router.get('/:id', employeController.getById);
 router.post('/', autoriserRoles('RH', 'ADMIN'), employeController.create);

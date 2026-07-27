@@ -11,6 +11,7 @@ import MesConges from './pages/employe/MesConges';
 import DemanderConge from './pages/employe/DemanderConge';
 import MesAbsences from './pages/employe/MesAbsences';
 import DeclarerAbsence from './pages/employe/DeclarerAbsence';
+import MesPresences from './pages/employe/MesPresences';
 
 // Espace Chef
 import DashboardChef from './pages/chef/DashboardChef';
@@ -46,7 +47,7 @@ function App() {
           <Route path="/employe/mes-conges/demander" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DemanderConge /></RoleRoute>} />
           <Route path="/employe/mes-absences" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MesAbsences /></RoleRoute>} />
           <Route path="/employe/mes-absences/declarer" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DeclarerAbsence /></RoleRoute>} />
-
+ <Route path="/employe/mes-presences" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MesPresences /></RoleRoute>} />
           {/* Espace Chef : réservé CHEF */}
           <Route path="/chef/dashboard" element={<RoleRoute rolesAutorises={['CHEF']}><DashboardChef /></RoleRoute>} />
           <Route path="/chef/mon-equipe" element={<RoleRoute rolesAutorises={['CHEF']}><MonEquipe /></RoleRoute>} />

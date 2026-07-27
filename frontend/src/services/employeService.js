@@ -28,4 +28,8 @@ async function getMonEquipe(date) {
   const response = await api.get('/employes/mon-equipe', { params: { date } });
   return response.data;
 }
-export { getAll, getById, create, update, remove,getMonEquipe };
+async function getMonProfil() {
+  const response = await api.get('/employes/mon-profil');
+  return response.data;
+}
+export { getAll, getById, create, update, remove,getMonEquipe,getMonProfil };

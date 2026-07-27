@@ -66,4 +66,15 @@ async function getEmployesAvecRoleChef() {
   `);
   return rows;
 }
-module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence, getEmployesAvecRoleChef };
+async function getProfilComplet(utilisateurId) {
+  const [rows] = await db.query(`
+    SELECT e.matricule, e.nom, e.prenom, e.poste, 
+           s.nom AS service_nom, d.nom AS departement_nom
+    FROM employe e
+    JOIN service s ON e.service_id = s.id
+    JOIN departement d ON s.departement_id = d.id
+    WHERE e.utilisateur_id = ?
+  `, [utilisateurId]);
+  return rows[0];
+}
+module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence, getEmployesAvecRoleChef, getProfilComplet };

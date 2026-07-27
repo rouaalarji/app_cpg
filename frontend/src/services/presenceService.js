@@ -10,4 +10,19 @@ async function marquerPresence(presence) {
   return response.data;
 }
 
-export { getByEmploye, marquerPresence };
+async function getMesPresences() {
+  const response = await api.get('/presences/mes-presences');
+  return response.data;
+}
+
+async function checkIn() {
+  const response = await api.post('/presences/check-in');
+  return response.data;
+}
+
+async function checkOut() {
+  const response = await api.post('/presences/check-out');
+  return response.data;
+}
+
+export { getByEmploye, marquerPresence, getMesPresences, checkIn, checkOut };
