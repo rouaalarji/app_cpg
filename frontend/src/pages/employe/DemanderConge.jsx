@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMonProfil } from '../../services/employeService';
+import { getSolde } from '../../services/demandeCongeService';
 import api from '../../services/api';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
 
@@ -18,6 +19,7 @@ function DemanderConge() {
   const navigate = useNavigate();
   const [profil, setProfil] = useState(null);
   const [typesConge, setTypesConge] = useState([]);
+  const [solde, setSolde] = useState(null);
   const [erreur, setErreur] = useState('');
   const [chargement, setChargement] = useState(false);
   const [fichier, setFichier] = useState(null);
@@ -49,6 +51,22 @@ function DemanderConge() {
     charger();
   }, []);
 
+  useEffect(() => {
+    async function chargerSolde() {
+      if (!formData.typeCongeId || formData.typeCongeId === NOUVEAU) {
+        setSolde(null);
+        return;
+      }
+      try {
+        const data = await getSolde(formData.typeCongeId);
+        setSolde(data);
+      } catch (err) {
+        setSolde(null);
+      }
+    }
+    chargerSolde();
+  }, [formData.typeCongeId]);
+
   function handleChange(e) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
@@ -58,6 +76,12 @@ function DemanderConge() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErreur('');
+
+    if (solde && !solde.illimite && nbJours > solde.restant) {
+      setErreur(`Solde insuffisant : il vous reste ${solde.restant} jour(s), vous demandez ${nbJours} jour(s).`);
+      return;
+    }
+
     setChargement(true);
 
     try {
@@ -104,14 +128,36 @@ function DemanderConge() {
       <div className="card-cpg p-4" style={{ maxWidth: '600px' }}>
         {/* En-tête employé, auto-rempli */}
         {profil && (
-          <div className="mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--cpg-border)' }}>
-            <div className="row g-2 small">
-              <div className="col-6"><span className="text-muted">Matricule :</span> <strong>{profil.matricule}</strong></div>
-              <div className="col-6"><span className="text-muted">Nom :</span> <strong>{profil.prenom} {profil.nom}</strong></div>
-              <div className="col-6"><span className="text-muted">Département :</span> <strong>{profil.departement_nom}</strong></div>
-              <div className="col-6"><span className="text-muted">Service :</span> <strong>{profil.service_nom}</strong></div>
-              <div className="col-6"><span className="text-muted">Poste :</span> <strong>{profil.poste}</strong></div>
+          <div
+            className="mb-4 p-3 rounded"
+            style={{ background: 'var(--cpg-primary-light)', border: '1px solid var(--cpg-border)' }}
+          >
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <i className="bi bi-person-badge fs-5" style={{ color: 'var(--cpg-primary)' }}></i>
+              <span className="fw-semibold small text-uppercase" style={{ color: 'var(--cpg-primary)', letterSpacing: '0.03em' }}>
+                Informations du demandeur
+              </span>
             </div>
+            <table className="table table-borderless mb-0" style={{ fontSize: '14px' }}>
+              <tbody>
+                <tr>
+                  <td className="text-muted py-1" style={{ width: '140px' }}>Matricule</td>
+                  <td className="fw-semibold py-1">{profil.matricule}</td>
+                  <td className="text-muted py-1" style={{ width: '140px' }}>Poste</td>
+                  <td className="fw-semibold py-1">{profil.poste}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted py-1">Nom complet</td>
+                  <td className="fw-semibold py-1">{profil.prenom} {profil.nom}</td>
+                  <td className="text-muted py-1">Service</td>
+                  <td className="fw-semibold py-1">{profil.service_nom}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted py-1">Département</td>
+                  <td className="fw-semibold py-1" colSpan={3}>{profil.departement_nom}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -121,11 +167,26 @@ function DemanderConge() {
             <select name="typeCongeId" value={formData.typeCongeId} onChange={handleChange} required className="form-select">
               <option value="">-- Sélectionner --</option>
               {typesConge.map((t) => (
-                <option key={t.id} value={t.id}>{t.nom} ({t.nb_jours_par_an} j/an)</option>
+                <option key={t.id} value={t.id}>
+                  {t.nom} ({t.nb_jours_par_an === null ? 'illimité' : `${t.nb_jours_par_an} j/an`})
+                </option>
               ))}
               <option value={NOUVEAU}>+ Nouveau type de congé</option>
             </select>
           </div>
+
+          {solde && !solde.illimite && (
+            <div className={`alert py-2 small mb-3 ${nbJours > solde.restant ? 'alert-danger' : 'alert-info'}`}>
+              <i className={`bi ${nbJours > solde.restant ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-1`}></i>
+              Solde disponible : <strong>{solde.restant}</strong> jour(s) sur {solde.total}
+              {' '}({solde.utilises} déjà utilisé(s) cette année)
+            </div>
+          )}
+          {solde && solde.illimite && (
+            <div className="alert alert-info py-2 small mb-3">
+              <i className="bi bi-info-circle me-1"></i>Ce type de congé est illimité.
+            </div>
+          )}
 
           {formData.typeCongeId === NOUVEAU && (
             <>
@@ -153,7 +214,12 @@ function DemanderConge() {
 
           <div className="mb-3">
             <label className="form-label small fw-semibold">Nombre de jours</label>
-            <input type="text" value={nbJours > 0 ? `${nbJours} jour(s)` : '—'} disabled className="form-control" />
+            <input
+              type="text"
+              value={nbJours > 0 ? `${nbJours} jour(s)` : '—'}
+              disabled
+              className={`form-control ${solde && !solde.illimite && nbJours > solde.restant ? 'border-danger text-danger' : ''}`}
+            />
             <small className="text-muted">Calcul automatique</small>
           </div>
 
@@ -181,7 +247,11 @@ function DemanderConge() {
           {erreur && <div className="alert alert-danger py-2 small">{erreur}</div>}
 
           <div className="d-flex gap-2">
-            <button type="submit" disabled={chargement} className="btn btn-cpg-primary px-4">
+            <button
+              type="submit"
+              disabled={chargement || (solde && !solde.illimite && nbJours > solde.restant)}
+              className="btn btn-cpg-primary px-4"
+            >
               {chargement ? 'Envoi...' : 'Envoyer'}
             </button>
             <button type="button" onClick={() => navigate('/employe/mes-conges')} className="btn btn-outline-secondary">

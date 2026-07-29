@@ -53,26 +53,50 @@ async function getMesDemandes(req, res) {
 
 async function create(req, res) {
   try {
-    const { employeId, typeCongeId, dateDebut, dateFin, motif } = req.body;
+    const { typeCongeId, dateDebut, dateFin, motif, adresseConge, telephoneConge } = req.body;
 
-    if (!employeId || !typeCongeId || !dateDebut || !dateFin) {
+    if (!typeCongeId || !dateDebut || !dateFin) {
       return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
-
     if (new Date(dateFin) < new Date(dateDebut)) {
       return res.status(400).json({ message: 'La date de fin doit être après la date de début' });
     }
 
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const employeId = rows[0].id;
     const nbJours = calculerNbJours(dateDebut, dateFin);
 
-    const id = await demandeCongeModel.create({ employeId, typeCongeId, dateDebut, dateFin, nbJours, motif });
+    // Vérification du solde disponible
+    const typeConge = await typeCongeModel.getById(typeCongeId);
+    if (!typeConge) {
+      return res.status(404).json({ message: 'Type de congé introuvable' });
+    }
+
+    if (typeConge.nb_jours_par_an !== null) {
+      const dejaUtilises = await demandeCongeModel.getJoursUtilisesCetteAnnee(employeId, typeCongeId);
+      const soldeRestant = typeConge.nb_jours_par_an - dejaUtilises;
+
+      if (nbJours > soldeRestant) {
+        return res.status(400).json({
+          message: `Solde insuffisant : il vous reste ${soldeRestant} jour(s) sur ${typeConge.nb_jours_par_an} pour "${typeConge.nom}", vous demandez ${nbJours} jour(s).`,
+        });
+      }
+    }
+
+    const pieceJustificative = req.file ? `/uploads/justificatifs/${req.file.filename}` : null;
+
+    const id = await demandeCongeModel.create({
+      employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative,
+    });
     res.status(201).json({ message: 'Demande de congé créée', id, nbJours });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
 // Validation niveau 1 (Chef)
 async function validerParChef(req, res) {
   try {
@@ -160,4 +184,34 @@ async function getMonEquipe(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser,getMonEquipe };
+async function getSolde(req, res) {
+  try {
+    const { typeCongeId } = req.params;
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const employeId = rows[0].id;
+
+    const typeConge = await typeCongeModel.getById(typeCongeId);
+    if (!typeConge) {
+      return res.status(404).json({ message: 'Type de congé introuvable' });
+    }
+
+    if (typeConge.nb_jours_par_an === null) {
+      return res.json({ illimite: true });
+    }
+
+    const dejaUtilises = await demandeCongeModel.getJoursUtilisesCetteAnnee(employeId, typeCongeId);
+    res.json({
+      illimite: false,
+      total: typeConge.nb_jours_par_an,
+      utilises: dejaUtilises,
+      restant: typeConge.nb_jours_par_an - dejaUtilises,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser,getMonEquipe,getSolde };

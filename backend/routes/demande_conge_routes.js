@@ -9,6 +9,7 @@ router.use(verifierToken);
 
 router.get('/', autoriserRoles('RH','ADMIN'), demandeCongeController.getAll);
 router.get('/mes-demandes', demandeCongeController.getMesDemandes);
+router.get('/solde/:typeCongeId', demandeCongeController.getSolde);
 router.get('/:id', demandeCongeController.getById);
 router.get('/mon-equipe', autoriserRoles('CHEF',), demandeCongeController.getMonEquipe);
 router.post('/', demandeCongeController.create);

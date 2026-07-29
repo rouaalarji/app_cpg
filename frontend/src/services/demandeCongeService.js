@@ -29,5 +29,8 @@ async function refuser(id, commentaire) {
   const response = await api.patch(`/demandes-conge/${id}/refuser`, { commentaire });
   return response.data;
 }
-
-export { getMesDemandes, getAll, create, annuler, validerParRh, refuser };
+async function getSolde(typeCongeId) {
+  const response = await api.get(`/demandes-conge/solde/${typeCongeId}`);
+  return response.data;
+}
+export { getMesDemandes, getAll, create, annuler, validerParRh, refuser,getSolde };

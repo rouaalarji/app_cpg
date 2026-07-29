@@ -83,7 +83,18 @@ async function getParServiceEnAttente(serviceId) {
   `, [serviceId]);
   return rows;
 }
+async function getJoursUtilisesCetteAnnee(employeId, typeCongeId) {
+  const [[{ total }]] = await db.query(
+    `SELECT COALESCE(SUM(nb_jours), 0) AS total 
+     FROM demande_conge 
+     WHERE employe_id = ? AND type_conge_id = ? 
+     AND statut IN ('EN_ATTENTE', 'VALIDE_CHEF', 'VALIDE_RH')
+     AND YEAR(date_debut) = YEAR(CURDATE())`,
+    [employeId, typeCongeId]
+  );
+  return total;
+}
 module.exports = {
   getAll, getById, getByEmployeId, getEnAttentePourChef, getEnAttentePourRh,
-  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,
+  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee
 };
