@@ -1,5 +1,7 @@
 const demandeCongeModel = require('../models/demande_conge_model');
 const employeModel = require('../models/employe_model');
+const typeCongeModel = require('../models/type_conge_model');
+const db = require('../config/database');
 
 // Calcule le nombre de jours ouvrés entre deux dates (simplifié : tous les jours, sans exclure weekends/fériés)
 function calculerNbJours(dateDebut, dateFin) {
