@@ -1,25 +1,30 @@
 import { useState, useEffect } from 'react';
-import { getAll, create, remove } from '../../services/typeCongeService';
+import { useAuth } from '../../context/AuthContext';
+import { getAll, create, update, remove } from '../../services/typeCongeService';
+import Modal from '../../components/Modal';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function TypesConge() {
+  const { utilisateur } = useAuth();
+  const estAdmin = utilisateur?.role === 'ADMIN';
+
   const [types, setTypes] = useState([]);
   const [chargement, setChargement] = useState(true);
-  const [erreur, setErreur] = useState('');
+  const [messageSucces, setMessageSucces] = useState('');
+
+  const [afficherForm, setAfficherForm] = useState(false);
+  const [idEnEdition, setIdEnEdition] = useState(null);
+  const [erreurForm, setErreurForm] = useState('');
+  const [illimite, setIllimite] = useState(false);
 
   const [formData, setFormData] = useState({
-    nom: '',
-    nbJoursParAn: '21',
-    necessiteJustificatif: false,
+    code: '', nom: '', description: '', nbJoursParAn: '', necessiteJustificatif: false,
   });
-  const [afficherForm, setAfficherForm] = useState(false);
 
   async function charger() {
     try {
       const data = await getAll();
       setTypes(data);
-    } catch (err) {
-      setErreur(err.response?.data?.message || 'Erreur lors du chargement');
     } finally {
       setChargement(false);
     }
@@ -29,6 +34,28 @@ function TypesConge() {
     charger();
   }, []);
 
+  function ouvrirAjout() {
+    setIdEnEdition(null);
+    setFormData({ code: '', nom: '', description: '', nbJoursParAn: '', necessiteJustificatif: false });
+    setIllimite(false);
+    setErreurForm('');
+    setAfficherForm(true);
+  }
+
+  function ouvrirEdition(type) {
+    setIdEnEdition(type.id);
+    setFormData({
+      code: type.code || '',
+      nom: type.nom,
+      description: type.description || '',
+      nbJoursParAn: type.nb_jours_par_an ?? '',
+      necessiteJustificatif: !!type.necessite_justificatif,
+    });
+    setIllimite(type.nb_jours_par_an === null);
+    setErreurForm('');
+    setAfficherForm(true);
+  }
+
   function handleChange(e) {
     const { name, type, value, checked } = e.target;
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
@@ -36,25 +63,34 @@ function TypesConge() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setErreurForm('');
     try {
-      await create({
-        nom: formData.nom,
-        nbJoursParAn: parseInt(formData.nbJoursParAn, 10),
-        necessiteJustificatif: formData.necessiteJustificatif,
-      });
-      setFormData({ nom: '', nbJoursParAn: '21', necessiteJustificatif: false });
+      const payload = {
+        ...formData,
+        nbJoursParAn: illimite ? null : parseInt(formData.nbJoursParAn, 10),
+      };
+      if (idEnEdition) {
+        await update(idEnEdition, payload);
+        setMessageSucces('Type de congé modifié avec succès.');
+      } else {
+        await create(payload);
+        setMessageSucces('Type de congé créé avec succès.');
+      }
       setAfficherForm(false);
       charger();
+      setTimeout(() => setMessageSucces(''), 4000);
     } catch (err) {
-      alert(err.response?.data?.message || 'Erreur lors de la création');
+      setErreurForm(err.response?.data?.message || 'Erreur');
     }
   }
 
-  async function handleSupprimer(id) {
-    if (!window.confirm('Supprimer ce type de congé ?')) return;
+  async function handleSupprimer(id, nom) {
+    if (!window.confirm(`Supprimer le type "${nom}" ?`)) return;
     try {
       await remove(id);
+      setMessageSucces('Type de congé supprimé.');
       charger();
+      setTimeout(() => setMessageSucces(''), 4000);
     } catch (err) {
       alert(err.response?.data?.message || 'Erreur lors de la suppression');
     }
@@ -62,18 +98,42 @@ function TypesConge() {
 
   return (
     <LayoutAdmin>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="fw-bold mb-0">Types de congés</h2>
-        <button className="btn btn-cpg-primary" onClick={() => setAfficherForm(!afficherForm)}>
-          <i className="bi bi-plus-lg me-1"></i> {afficherForm ? 'Annuler' : 'Nouveau type'}
-        </button>
+      <div className="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h2 className="fw-bold mb-1">Types de congés</h2>
+          <p className="text-muted mb-0">{types.length} type(s) configuré(s)</p>
+        </div>
+        {estAdmin && (
+          <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
+            <i className="bi bi-plus-lg"></i> Ajouter
+          </button>
+        )}
       </div>
 
+      {messageSucces && (
+        <div className="alert d-flex align-items-center gap-2 mb-3" style={{ background: 'var(--cpg-success-light)', color: '#047857', border: 'none', borderRadius: '10px' }}>
+          <i className="bi bi-check-circle-fill"></i> {messageSucces}
+        </div>
+      )}
+
       {afficherForm && (
-        <div className="card card-cpg p-4 mb-4" style={{ maxWidth: '450px' }}>
+        <Modal titre={idEnEdition ? 'Modifier le type de congé' : 'Ajouter un type de congé'} onFermer={() => setAfficherForm(false)}>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Nom</label>
+              <label className="form-label small fw-semibold">Code</label>
+              <input
+                type="text"
+                name="code"
+                value={formData.code}
+                onChange={handleChange}
+                required
+                className="form-control"
+                placeholder="ex: C1"
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">Nom du type</label>
               <input
                 type="text"
                 name="nom"
@@ -81,77 +141,132 @@ function TypesConge() {
                 onChange={handleChange}
                 required
                 className="form-control"
-                placeholder="ex: Congé annuel, Congé maladie"
+                placeholder="ex: Congé annuel"
               />
             </div>
+
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Jours par an</label>
-              <input
-                type="number"
-                name="nbJoursParAn"
-                value={formData.nbJoursParAn}
+              <label className="form-label small fw-semibold">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
-                required
                 className="form-control"
+                rows={2}
+                placeholder="ex: Congé accordé annuellement à chaque employé."
               />
             </div>
-            <div className="mb-3 form-check">
-              <input
-                type="checkbox"
-                name="necessiteJustificatif"
-                checked={formData.necessiteJustificatif}
-                onChange={handleChange}
-                className="form-check-input"
-                id="justificatifCheck"
-              />
-              <label className="form-check-label small" htmlFor="justificatifCheck">
-                Nécessite un justificatif
-              </label>
+
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">Nombre de jours autorisés</label>
+              <div className="d-flex align-items-center gap-2">
+                <input
+                  type="number"
+                  name="nbJoursParAn"
+                  value={formData.nbJoursParAn}
+                  onChange={handleChange}
+                  disabled={illimite}
+                  required={!illimite}
+                  className="form-control"
+                  placeholder="ex: 30"
+                />
+                <div className="form-check text-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={illimite}
+                    onChange={(e) => setIllimite(e.target.checked)}
+                    className="form-check-input"
+                    id="illimiteCheck"
+                  />
+                  <label className="form-check-label small" htmlFor="illimiteCheck">Illimité</label>
+                </div>
+              </div>
             </div>
-            <button type="submit" className="btn btn-cpg-primary w-100">Créer</button>
+
+            <div className="mb-3">
+              <label className="form-label small fw-semibold d-block">Justificatif obligatoire</label>
+              <div className="d-flex gap-3">
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    name="necessiteJustificatif"
+                    checked={formData.necessiteJustificatif === true}
+                    onChange={() => setFormData({ ...formData, necessiteJustificatif: true })}
+                    className="form-check-input"
+                    id="justifOui"
+                  />
+                  <label className="form-check-label small" htmlFor="justifOui">Oui</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    name="necessiteJustificatif"
+                    checked={formData.necessiteJustificatif === false}
+                    onChange={() => setFormData({ ...formData, necessiteJustificatif: false })}
+                    className="form-check-input"
+                    id="justifNon"
+                  />
+                  <label className="form-check-label small" htmlFor="justifNon">Non</label>
+                </div>
+              </div>
+            </div>
+
+            {erreurForm && <div className="alert alert-danger py-2 small">{erreurForm}</div>}
+
+            <div className="d-flex gap-2">
+              <button type="submit" className="btn btn-cpg-primary">Enregistrer</button>
+              <button type="button" onClick={() => setAfficherForm(false)} className="btn btn-outline-secondary">Annuler</button>
+            </div>
           </form>
-        </div>
+        </Modal>
       )}
 
-      {chargement && <p>Chargement...</p>}
-      {erreur && <div className="alert alert-danger">{erreur}</div>}
+      <div className="card-cpg p-0 overflow-hidden">
+        {chargement && <p className="p-4 mb-0 text-muted">Chargement...</p>}
+        {!chargement && types.length === 0 && (
+          <div className="p-5 text-center text-muted">Aucun type de congé configuré.</div>
+        )}
 
-      {!chargement && types.length === 0 && (
-        <p className="text-muted">Aucun type de congé configuré.</p>
-      )}
-
-      {!chargement && types.length > 0 && (
-        <div className="table-responsive">
-          <table className="table table-hover align-middle bg-white card-cpg">
+        {!chargement && types.length > 0 && (
+          <table className="table table-cpg mb-0">
             <thead>
               <tr>
+                <th>Code</th>
                 <th>Nom</th>
-                <th>Jours / an</th>
-                <th>Justificatif requis</th>
-                <th>Actions</th>
+                <th>Jours autorisés</th>
+                <th>Justificatif</th>
+                {estAdmin && <th className="text-end">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {types.map((t) => (
                 <tr key={t.id}>
-                  <td>{t.nom}</td>
-                  <td>{t.nb_jours_par_an}</td>
+                  <td className="text-muted">{t.code}</td>
+                  <td className="fw-semibold">{t.nom}</td>
                   <td>
-                    <span className={`badge ${t.necessite_justificatif ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                    {t.nb_jours_par_an === null ? (
+                      <span className="badge badge-cpg-neutral">Illimité</span>
+                    ) : (
+                      `${t.nb_jours_par_an} jours`
+                    )}
+                  </td>
+                  <td>
+                    <span className={`badge ${t.necessite_justificatif ? 'badge-cpg-warning' : 'badge-cpg-neutral'}`}>
                       {t.necessite_justificatif ? 'Oui' : 'Non'}
                     </span>
                   </td>
-                  <td>
-                    <button onClick={() => handleSupprimer(t.id)} className="btn btn-sm btn-outline-danger">
-                      Supprimer
-                    </button>
-                  </td>
+                  {estAdmin && (
+                    <td className="text-end">
+                      <button onClick={() => ouvrirEdition(t)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
+                      <button onClick={() => handleSupprimer(t.id, t.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </LayoutAdmin>
   );
 }

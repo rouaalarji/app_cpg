@@ -1,7 +1,7 @@
 const db = require('../config/database');
 
 async function getAll() {
-  const [rows] = await db.query('SELECT * FROM type_conge');
+  const [rows] = await db.query('SELECT * FROM type_conge ORDER BY nom');
   return rows;
 }
 
@@ -10,18 +10,18 @@ async function getById(id) {
   return rows[0];
 }
 
-async function create({ nom, nbJoursParAn, necessiteJustificatif }) {
+async function create({ code, nom, description, nbJoursParAn, necessiteJustificatif }) {
   const [result] = await db.query(
-    'INSERT INTO type_conge (nom, nb_jours_par_an, necessite_justificatif) VALUES (?, ?, ?)',
-    [nom, nbJoursParAn, necessiteJustificatif || false]
+    'INSERT INTO type_conge (code, nom, description, nb_jours_par_an, necessite_justificatif) VALUES (?, ?, ?, ?, ?)',
+    [code, nom, description || null, nbJoursParAn, necessiteJustificatif || false]
   );
   return result.insertId;
 }
 
-async function update(id, { nom, nbJoursParAn, necessiteJustificatif }) {
+async function update(id, { code, nom, description, nbJoursParAn, necessiteJustificatif }) {
   await db.query(
-    'UPDATE type_conge SET nom = ?, nb_jours_par_an = ?, necessite_justificatif = ? WHERE id = ?',
-    [nom, nbJoursParAn, necessiteJustificatif || false, id]
+    'UPDATE type_conge SET code = ?, nom = ?, description = ?, nb_jours_par_an = ?, necessite_justificatif = ? WHERE id = ?',
+    [code, nom, description || null, nbJoursParAn, necessiteJustificatif || false, id]
   );
 }
 

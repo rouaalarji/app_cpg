@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/employes',employeRoutes);
 app.use('/api/services', serviceRoutes);
-app.use('/api/type-conges', typeCongeRoutes);
+app.use('/api/types-conge', typeCongeRoutes);
 app.use('/api/demandes-conge', demandeCongeRoutes);
 app.use('/api/presences', presenceRoutes);
 app.use('/api/absences', absenceRoutes);
