@@ -1,9 +1,10 @@
 const demandeCongeModel = require('../models/demande_conge_model');
 const employeModel = require('../models/employe_model');
 const typeCongeModel = require('../models/type_conge_model');
+const serviceModel = require('../models/service_model');
 const db = require('../config/database');
 
-// Calcule le nombre de jours ouvrés entre deux dates (simplifié : tous les jours, sans exclure weekends/fériés)
+// Calcule le nombre de jours entre deux dates
 function calculerNbJours(dateDebut, dateFin) {
   const debut = new Date(dateDebut);
   const fin = new Date(dateFin);
@@ -37,11 +38,7 @@ async function getById(req, res) {
 // Un employé consulte ses propres demandes
 async function getMesDemandes(req, res) {
   try {
-    // req.utilisateur.id vient du token JWT, mais on a besoin de l'employe_id lié
-    const [rows] = await require('../config/database').query(
-      'SELECT id FROM employe WHERE utilisateur_id = ?',
-      [req.utilisateur.id]
-    );
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
     if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
@@ -99,7 +96,8 @@ async function create(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-// Validation niveau 1 (Chef)
+
+// Validation niveau 1 (Chef, désigné via service.chef_id)
 async function validerParChef(req, res) {
   try {
     const demande = await demandeCongeModel.getById(req.params.id);
@@ -110,17 +108,20 @@ async function validerParChef(req, res) {
       return res.status(400).json({ message: `Impossible de valider : statut actuel = ${demande.statut}` });
     }
 
-    // Récupérer l'employe_id du chef connecté
-    const [rows] = await require('../config/database').query(
-      'SELECT id FROM employe WHERE utilisateur_id = ?',
-      [req.utilisateur.id]
-    );
-    const chefEmployeId = rows[0]?.id;
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const chefEmployeId = rows[0].id;
 
-    // Vérifier que ce chef est bien le supérieur de l'employé concerné
+    const service = await serviceModel.getServiceParResponsable(chefEmployeId);
+    if (!service) {
+      return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
+    }
+
     const employeConcerne = await employeModel.getById(demande.employe_id);
-    if (employeConcerne.chef_id !== chefEmployeId) {
-      return res.status(403).json({ message: "Vous n'êtes pas le responsable de cet employé" });
+    if (employeConcerne.service_id !== service.id) {
+      return res.status(403).json({ message: "Cette demande ne concerne pas votre service" });
     }
 
     await demandeCongeModel.validerParChef(req.params.id, chefEmployeId);
@@ -131,7 +132,7 @@ async function validerParChef(req, res) {
   }
 }
 
-// Validation niveau 2 (RH) - validation finale
+// Validation niveau 2 (RH/Admin) - finale
 async function validerParRh(req, res) {
   try {
     const demande = await demandeCongeModel.getById(req.params.id);
@@ -139,13 +140,10 @@ async function validerParRh(req, res) {
       return res.status(404).json({ message: 'Demande non trouvée' });
     }
     if (demande.statut !== 'VALIDE_CHEF') {
-      return res.status(400).json({ message: `Impossible de valider : statut actuel = ${demande.statut}` });
+      return res.status(400).json({ message: `Impossible de valider : la demande doit d'abord être validée par le chef (statut actuel = ${demande.statut})` });
     }
 
-    const [rows] = await require('../config/database').query(
-      'SELECT id FROM employe WHERE utilisateur_id = ?',
-      [req.utilisateur.id]
-    );
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
     const rhEmployeId = rows[0]?.id;
 
     await demandeCongeModel.validerParRh(req.params.id, rhEmployeId);
@@ -173,19 +171,29 @@ async function refuser(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
+// Demandes en attente de l'avis du Chef, pour son propre service (via service.chef_id)
 async function getMonEquipe(req, res) {
   try {
-    const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
     if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
-    const demandes = await demandeCongeModel.getParServiceEnAttente(rows[0].service_id);
+    const monEmployeId = rows[0].id;
+
+    const service = await serviceModel.getServiceParResponsable(monEmployeId);
+    if (!service) {
+      return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
+    }
+
+    const demandes = await demandeCongeModel.getParServiceEnAttente(service.id);
     res.json(demandes);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getSolde(req, res) {
   try {
     const { typeCongeId } = req.params;
@@ -216,4 +224,5 @@ async function getSolde(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser,getMonEquipe,getSolde };
+
+module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser, getMonEquipe, getSolde };
