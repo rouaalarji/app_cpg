@@ -94,7 +94,24 @@ async function getJoursUtilisesCetteAnnee(employeId, typeCongeId) {
   );
   return total;
 }
+async function getChevauchement(employeId, dateDebut, dateFin) {
+  const [rows] = await db.query(
+    `SELECT * FROM demande_conge 
+     WHERE employe_id = ? 
+     AND statut IN ('EN_ATTENTE', 'VALIDE_CHEF', 'VALIDE_RH')
+     AND date_debut <= ? AND date_fin >= ?`,
+    [employeId, dateFin, dateDebut]
+  );
+  return rows;
+}
+async function annuler(id, employeId) {
+  const [result] = await db.query(
+    `DELETE FROM demande_conge WHERE id = ? AND employe_id = ? AND statut = 'EN_ATTENTE'`,
+    [id, employeId]
+  );
+  return result.affectedRows > 0;
+}
 module.exports = {
   getAll, getById, getByEmployeId, getEnAttentePourChef, getEnAttentePourRh,
-  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee
+  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee, getChevauchement, annuler
 };

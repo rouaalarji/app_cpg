@@ -4,7 +4,6 @@ const typeCongeModel = require('../models/type_conge_model');
 const serviceModel = require('../models/service_model');
 const db = require('../config/database');
 
-// Calcule le nombre de jours entre deux dates
 function calculerNbJours(dateDebut, dateFin) {
   const debut = new Date(dateDebut);
   const fin = new Date(dateFin);
@@ -35,7 +34,6 @@ async function getById(req, res) {
   }
 }
 
-// Un employé consulte ses propres demandes
 async function getMesDemandes(req, res) {
   try {
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
@@ -68,6 +66,14 @@ async function create(req, res) {
     const employeId = rows[0].id;
     const nbJours = calculerNbJours(dateDebut, dateFin);
 
+    // Vérification de chevauchement avec une demande existante
+    const chevauchements = await demandeCongeModel.getChevauchement(employeId, dateDebut, dateFin);
+    if (chevauchements.length > 0) {
+      return res.status(409).json({
+        message: `Vous avez déjà une demande de congé sur cette période (${chevauchements[0].date_debut} → ${chevauchements[0].date_fin}, statut: ${chevauchements[0].statut}).`,
+      });
+    }
+
     // Vérification du solde disponible
     const typeConge = await typeCongeModel.getById(typeCongeId);
     if (!typeConge) {
@@ -97,7 +103,26 @@ async function create(req, res) {
   }
 }
 
-// Validation niveau 1 (Chef, désigné via service.chef_id)
+// Annuler une demande (uniquement si EN_ATTENTE et appartient à l'employé connecté)
+async function annuler(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const employeId = rows[0].id;
+
+    const succes = await demandeCongeModel.annuler(req.params.id, employeId);
+    if (!succes) {
+      return res.status(400).json({ message: "Impossible d'annuler (déjà traitée ou introuvable)" });
+    }
+    res.json({ message: 'Demande annulée' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
 async function validerParChef(req, res) {
   try {
     const demande = await demandeCongeModel.getById(req.params.id);
@@ -132,7 +157,6 @@ async function validerParChef(req, res) {
   }
 }
 
-// Validation niveau 2 (RH/Admin) - finale
 async function validerParRh(req, res) {
   try {
     const demande = await demandeCongeModel.getById(req.params.id);
@@ -172,7 +196,6 @@ async function refuser(req, res) {
   }
 }
 
-// Demandes en attente de l'avis du Chef, pour son propre service (via service.chef_id)
 async function getMonEquipe(req, res) {
   try {
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
@@ -225,4 +248,4 @@ async function getSolde(req, res) {
   }
 }
 
-module.exports = { getAll, getById, getMesDemandes, create, validerParChef, validerParRh, refuser, getMonEquipe, getSolde };
+module.exports = { getAll, getById, getMesDemandes, create, annuler, validerParChef, validerParRh, refuser, getMonEquipe, getSolde };

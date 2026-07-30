@@ -15,5 +15,5 @@ router.post('/', upload.single('pieceJustificative'), demandeCongeController.cre
 router.patch('/:id/valider-chef', autoriserRoles('CHEF'), demandeCongeController.validerParChef);
 router.patch('/:id/valider-rh', autoriserRoles('RH', 'ADMIN'), demandeCongeController.validerParRh);
 router.patch('/:id/refuser', autoriserRoles('CHEF', 'RH', 'ADMIN'), demandeCongeController.refuser);
-
+router.delete('/:id/annuler', demandeCongeController.annuler);
 module.exports = router;
