@@ -9,6 +9,7 @@ function SidebarAdmin({ ouvert, setOuvert }) {
 
   const liensCommuns = [
     { to: '/admin/dashboard', label: 'Dashboard', icone: 'bi-speedometer2' },
+      { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
     { to: '/admin/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
     { to: '/admin/employes', label: 'Employés', icone: 'bi-people' },
     { to: '/admin/services', label: 'Départements / Services', icone: 'bi-diagram-3' },

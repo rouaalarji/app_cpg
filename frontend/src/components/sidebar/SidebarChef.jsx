@@ -8,6 +8,7 @@ function SidebarChef({ ouvert, setOuvert }) {
 
   const liens = [
     { to: '/chef/dashboard', label: 'Dashboard', icone: 'bi-speedometer2' },
+      { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
     { to: '/chef/mon-equipe', label: 'Mon équipe', icone: 'bi-people' },
     { to: '/chef/presences-equipe', label: 'Présences équipe', icone: 'bi-clock-history' },
     { to: '/chef/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
