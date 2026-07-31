@@ -66,5 +66,29 @@ async function register(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+async function changerMotDePasse(req, res) {
+  try {
+    const { ancienMotDePasse, nouveauMotDePasse } = req.body;
+    if (!ancienMotDePasse || !nouveauMotDePasse) {
+      return res.status(400).json({ message: 'Champs obligatoires manquants' });
+    }
+    if (nouveauMotDePasse.length < 6) {
+      return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+    }
 
-module.exports = { login, register };
+    const utilisateur = await utilisateurModel.findById(req.utilisateur.id);
+    const valide = await bcrypt.compare(ancienMotDePasse, utilisateur.mot_de_passe);
+    if (!valide) {
+      return res.status(401).json({ message: 'Ancien mot de passe incorrect' });
+    }
+
+    const nouveauHash = await bcrypt.hash(nouveauMotDePasse, 10);
+    await utilisateurModel.updateMotDePasse(req.utilisateur.id, nouveauHash);
+
+    res.json({ message: 'Mot de passe modifié avec succès' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { login, register, changerMotDePasse };

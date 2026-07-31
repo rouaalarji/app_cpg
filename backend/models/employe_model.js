@@ -68,11 +68,13 @@ async function getEmployesAvecRoleChef() {
 }
 async function getProfilComplet(utilisateurId) {
   const [rows] = await db.query(`
-    SELECT e.matricule, e.nom, e.prenom, e.poste, 
-           s.nom AS service_nom, d.nom AS departement_nom
+    SELECT e.matricule, e.nom, e.prenom, e.poste, e.date_embauche, e.date_naissance, e.zone_travail,
+           s.nom AS service_nom, s.code AS service_code, d.nom AS departement_nom,
+           u.email, u.role
     FROM employe e
     JOIN service s ON e.service_id = s.id
     JOIN departement d ON s.departement_id = d.id
+    JOIN utilisateur u ON e.utilisateur_id = u.id
     WHERE e.utilisateur_id = ?
   `, [utilisateurId]);
   return rows[0];

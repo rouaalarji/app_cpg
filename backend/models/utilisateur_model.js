@@ -50,4 +50,7 @@ async function updateRole(id, role) {
 async function updateStatut(id, actif) {
   await db.query('UPDATE utilisateur SET actif = ? WHERE id = ?', [actif, id]);
 }
-module.exports = { findByEmail, findById, create, getAll, updateRole, updateStatut };
+async function updateMotDePasse(id, motDePasseHash) {
+  await db.query('UPDATE utilisateur SET mot_de_passe = ? WHERE id = ?', [motDePasseHash, id]);
+}
+module.exports = { findByEmail, findById, create, getAll, updateRole, updateStatut, updateMotDePasse };

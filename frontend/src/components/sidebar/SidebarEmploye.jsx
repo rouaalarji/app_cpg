@@ -7,6 +7,7 @@ function SidebarEmploye({ ouvert, setOuvert }) {
 
   const liens = [
     { to: '/employe/dashboard', label: 'Dashboard', icone: 'bi-speedometer2' },
+    { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
     { to: '/employe/mes-conges', label: 'Mes congés', icone: 'bi-calendar-check' },
     { to: '/employe/mes-absences', label: 'Mes absences', icone: 'bi-calendar-x' },
     { to: '/employe/mes-presences', label: 'Mes présences', icone: 'bi-clock-history' },
