@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react';
 import { getMonEquipe } from '../../services/employeService';
 import LayoutChef from '../../components/layout/LayoutChef';
 
-const LABELS_ZONE = {
-  ADMINISTRATIF: 'Administratif',
-  TERRAIN: 'Terrain',
-  ATELIER: 'Atelier',
-  MAGASIN: 'Magasin',
-  LABORATOIRE: 'Laboratoire',
-};
-
 const COULEURS_PRESENCE = {
   PRESENT: 'badge-cpg-success',
   ABSENT: 'badge-cpg-danger',
@@ -37,7 +29,7 @@ function MonEquipe() {
   }, []);
 
   const filtres = equipe.filter((emp) =>
-    `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.poste}`.toLowerCase().includes(recherche.toLowerCase())
+    `${emp.nom} ${emp.prenom} ${emp.matricule}`.toLowerCase().includes(recherche.toLowerCase())
   );
 
   return (
@@ -74,8 +66,6 @@ function MonEquipe() {
                 <th>Matricule</th>
                 <th>Nom</th>
                 <th>Prénom</th>
-                <th>Poste</th>
-                <th>Zone de travail</th>
                 <th>Statut aujourd'hui</th>
               </tr>
             </thead>
@@ -85,10 +75,6 @@ function MonEquipe() {
                   <td className="text-muted">{emp.matricule}</td>
                   <td className="fw-semibold">{emp.nom}</td>
                   <td>{emp.prenom}</td>
-                  <td>{emp.poste}</td>
-                  <td>
-                    <span className="badge badge-cpg-neutral">{LABELS_ZONE[emp.zone_travail] || emp.zone_travail}</span>
-                  </td>
                   <td>
                     {emp.statut_presence ? (
                       <span className={`badge ${COULEURS_PRESENCE[emp.statut_presence]}`}>

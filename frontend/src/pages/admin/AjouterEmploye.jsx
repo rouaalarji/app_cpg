@@ -6,39 +6,39 @@ import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function AjouterEmploye() {
   const navigate = useNavigate();
+  const [departements, setDepartements] = useState([]);
   const [services, setServices] = useState([]);
   const [erreur, setErreur] = useState('');
   const [chargement, setChargement] = useState(false);
 
   const [formData, setFormData] = useState({
-  email: '',
-  motDePasse: '',
-  role: 'EMPLOYE',
-  matricule: '',
-  nom: '',
-  prenom: '',
-  dateNaissance: '',
-  dateEmbauche: '',
-  poste: '',
-  serviceId: '',
-  zoneTravail: 'ADMINISTRATIF',
-});
+    email: '',
+    motDePasse: '',
+    role: 'EMPLOYE',
+    matricule: '',
+    nom: '',
+    prenom: '',
+    dateNaissance: '',
+    dateEmbauche: '',
+    departementId: '',
+    serviceId: '',
+  });
 
   useEffect(() => {
-    async function chargerServices() {
-      try {
-        const response = await api.get('/services');
-        setServices(response.data);
-      } catch (err) {
-        console.error('Erreur chargement services', err);
-      }
-    }
-    chargerServices();
+    api.get('/departements').then((res) => setDepartements(res.data));
+    api.get('/services').then((res) => setServices(res.data));
   }, []);
 
   function handleChange(e) {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'departementId') {
+      setFormData({ ...formData, departementId: value, serviceId: '' });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   }
+
+  const servicesFiltres = services.filter((s) => String(s.departement_id) === String(formData.departementId));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -66,36 +66,17 @@ function AjouterEmploye() {
 
           <div className="mb-3">
             <label className="form-label small fw-semibold">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
+            <input type="email" name="email" value={formData.email} onChange={handleChange} required className="form-control" />
           </div>
 
           <div className="mb-3">
             <label className="form-label small fw-semibold">Mot de passe initial</label>
-            <input
-              type="text"
-              name="motDePasse"
-              value={formData.motDePasse}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
+            <input type="text" name="motDePasse" value={formData.motDePasse} onChange={handleChange} required className="form-control" />
           </div>
 
           <div className="mb-4">
             <label className="form-label small fw-semibold">Rôle</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="form-select"
-            >
+            <select name="role" value={formData.role} onChange={handleChange} className="form-select">
               <option value="EMPLOYE">Employé</option>
               <option value="CHEF">Chef</option>
               <option value="RH">RH</option>
@@ -109,86 +90,41 @@ function AjouterEmploye() {
 
           <div className="mb-3">
             <label className="form-label small fw-semibold">Matricule</label>
-            <input
-              type="text"
-              name="matricule"
-              value={formData.matricule}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
+            <input type="text" name="matricule" value={formData.matricule} onChange={handleChange} required className="form-control" />
           </div>
 
           <div className="row">
             <div className="col-md-6 mb-3">
               <label className="form-label small fw-semibold">Nom</label>
-              <input
-                type="text"
-                name="nom"
-                value={formData.nom}
-                onChange={handleChange}
-                required
-                className="form-control"
-              />
+              <input type="text" name="nom" value={formData.nom} onChange={handleChange} required className="form-control" />
             </div>
             <div className="col-md-6 mb-3">
               <label className="form-label small fw-semibold">Prénom</label>
-              <input
-                type="text"
-                name="prenom"
-                value={formData.prenom}
-                onChange={handleChange}
-                required
-                className="form-control"
-              />
+              <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} required className="form-control" />
             </div>
           </div>
 
           <div className="row">
             <div className="col-md-6 mb-3">
               <label className="form-label small fw-semibold">Date de naissance</label>
-              <input
-                type="date"
-                name="dateNaissance"
-                value={formData.dateNaissance}
-                onChange={handleChange}
-                className="form-control"
-              />
+              <input type="date" name="dateNaissance" value={formData.dateNaissance} onChange={handleChange} className="form-control" />
             </div>
             <div className="col-md-6 mb-3">
               <label className="form-label small fw-semibold">Date d'embauche</label>
-              <input
-                type="date"
-                name="dateEmbauche"
-                value={formData.dateEmbauche}
-                onChange={handleChange}
-                required
-                className="form-control"
-              />
+              <input type="date" name="dateEmbauche" value={formData.dateEmbauche} onChange={handleChange} required className="form-control" />
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="form-label small fw-semibold">Poste</label>
-            <input
-              type="text"
-              name="poste"
-              value={formData.poste}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label small fw-semibold">Zone de travail</label>
-            <select name="zoneTravail" value={formData.zoneTravail} onChange={handleChange} className="form-select">
-              <option value="ADMINISTRATIF">Administratif</option>
-              <option value="TERRAIN">Terrain</option>
-              <option value="ATELIER">Atelier</option>
-              <option value="MAGASIN">Magasin</option>
-              <option value="LABORATOIRE">Laboratoire</option>
+            <label className="form-label small fw-semibold">Département</label>
+            <select name="departementId" value={formData.departementId} onChange={handleChange} required className="form-select">
+              <option value="">-- Sélectionner --</option>
+              {departements.map((d) => (
+                <option key={d.id} value={d.id}>{d.nom}</option>
+              ))}
             </select>
           </div>
+
           <div className="mb-3">
             <label className="form-label small fw-semibold">Service</label>
             <select
@@ -196,15 +132,17 @@ function AjouterEmploye() {
               value={formData.serviceId}
               onChange={handleChange}
               required
+              disabled={!formData.departementId}
               className="form-select"
             >
               <option value="">-- Sélectionner --</option>
-              {services.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.code} - {s.nom}
-                </option>
+              {servicesFiltres.map((s) => (
+                <option key={s.id} value={s.id}>{s.code} - {s.nom}</option>
               ))}
             </select>
+            {!formData.departementId && (
+              <small className="text-muted">Choisissez d'abord un département</small>
+            )}
           </div>
 
           {erreur && <div className="alert alert-danger py-2 small">{erreur}</div>}

@@ -15,38 +15,6 @@ async function getByServiceId(serviceId) {
   return rows;
 }
 
-async function getByChefId(chefId) {
-  const [rows] = await db.query('SELECT * FROM employe WHERE chef_id = ?', [chefId]);
-  return rows;
-}
-async function create(employe) {
-  const { utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId, zoneTravail } = employe;
-  const [result] = await db.query(
-    `INSERT INTO employe 
-      (utilisateur_id, matricule, nom, prenom, date_naissance, date_embauche, poste, service_id, chef_id, zone_travail) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, poste, serviceId, chefId || null, zoneTravail || 'ADMINISTRATIF']
-  );
-  return result.insertId;
-}
-
-async function update(id, employe) {
-  const { nom, prenom, dateNaissance, poste, serviceId, chefId, statut, zoneTravail } = employe;
-  await db.query(
-    `UPDATE employe 
-     SET nom = ?, prenom = ?, date_naissance = ?, poste = ?, service_id = ?, chef_id = ?, statut = ?, zone_travail = ?
-     WHERE id = ?`,
-    [nom, prenom, dateNaissance, poste, serviceId, chefId || null, statut, zoneTravail, id]
-  );
-}
-
-async function remove(id) {
-  await db.query('DELETE FROM employe WHERE id = ?', [id]);
-}
-async function getServiceIdParUtilisateur(utilisateurId) {
-  const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [utilisateurId]);
-  return rows[0]?.service_id;
-}
 async function getByServiceIdAvecPresence(serviceId, date) {
   const [rows] = await db.query(`
     SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart
@@ -57,6 +25,12 @@ async function getByServiceIdAvecPresence(serviceId, date) {
   `, [date, serviceId]);
   return rows;
 }
+
+async function getServiceIdParUtilisateur(utilisateurId) {
+  const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [utilisateurId]);
+  return rows[0]?.service_id;
+}
+
 async function getEmployesAvecRoleChef() {
   const [rows] = await db.query(`
     SELECT e.id, e.nom, e.prenom, e.matricule
@@ -66,9 +40,10 @@ async function getEmployesAvecRoleChef() {
   `);
   return rows;
 }
+
 async function getProfilComplet(utilisateurId) {
   const [rows] = await db.query(`
-    SELECT e.matricule, e.nom, e.prenom, e.poste, e.date_embauche, e.date_naissance, e.zone_travail,
+    SELECT e.matricule, e.nom, e.prenom, e.date_embauche, e.date_naissance,
            s.nom AS service_nom, s.code AS service_code, d.nom AS departement_nom,
            u.email, u.role
     FROM employe e
@@ -79,4 +54,33 @@ async function getProfilComplet(utilisateurId) {
   `, [utilisateurId]);
   return rows[0];
 }
-module.exports = { getAll, getById, getByServiceId, getByChefId, create, update, remove, getServiceIdParUtilisateur, getByServiceIdAvecPresence, getEmployesAvecRoleChef, getProfilComplet };
+
+async function create(employe) {
+  const { utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, serviceId } = employe;
+  const [result] = await db.query(
+    `INSERT INTO employe 
+      (utilisateur_id, matricule, nom, prenom, date_naissance, date_embauche, service_id) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [utilisateurId, matricule, nom, prenom, dateNaissance, dateEmbauche, serviceId]
+  );
+  return result.insertId;
+}
+
+async function update(id, employe) {
+  const { nom, prenom, dateNaissance, serviceId, statut } = employe;
+  await db.query(
+    `UPDATE employe 
+     SET nom = ?, prenom = ?, date_naissance = ?, service_id = ?, statut = ?
+     WHERE id = ?`,
+    [nom, prenom, dateNaissance, serviceId, statut, id]
+  );
+}
+
+async function remove(id) {
+  await db.query('DELETE FROM employe WHERE id = ?', [id]);
+}
+
+module.exports = {
+  getAll, getById, getByServiceId, getByServiceIdAvecPresence, getServiceIdParUtilisateur,
+  getEmployesAvecRoleChef, getProfilComplet, create, update, remove,
+};

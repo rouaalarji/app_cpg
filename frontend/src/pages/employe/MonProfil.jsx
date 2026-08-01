@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { getMonProfil } from '../../services/employeService';
 import { changerMotDePasse } from '../../services/authService';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
-
-const LABELS_ZONE = {
-  ADMINISTRATIF: 'Administratif',
-  TERRAIN: 'Terrain',
-  ATELIER: 'Atelier',
-  MAGASIN: 'Magasin',
-  LABORATOIRE: 'Laboratoire',
-};
+import LayoutChef from '../../components/layout/LayoutChef';
+import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function MonProfil() {
+  const { utilisateur } = useAuth();
+
+  const LayoutSelon = utilisateur?.role === 'CHEF'
+    ? LayoutChef
+    : (utilisateur?.role === 'RH' || utilisateur?.role === 'ADMIN')
+      ? LayoutAdmin
+      : LayoutEmploye;
+
   const [profil, setProfil] = useState(null);
   const [chargement, setChargement] = useState(true);
+  const [erreur, setErreur] = useState('');
 
   const [afficherFormMdp, setAfficherFormMdp] = useState(false);
   const [mdpForm, setMdpForm] = useState({ ancien: '', nouveau: '', confirmation: '' });
@@ -26,6 +30,8 @@ function MonProfil() {
       try {
         const data = await getMonProfil();
         setProfil(data);
+      } catch (err) {
+        setErreur(err.response?.data?.message || 'Impossible de charger le profil');
       } finally {
         setChargement(false);
       }
@@ -61,19 +67,29 @@ function MonProfil() {
 
   if (chargement) {
     return (
-      <LayoutEmploye>
+      <LayoutSelon>
         <p>Chargement...</p>
-      </LayoutEmploye>
+      </LayoutSelon>
+    );
+  }
+
+  if (erreur && !profil) {
+    return (
+      <LayoutSelon>
+        <div className="alert alert-warning">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {erreur} — aucune fiche employé n'est associée à ce compte.
+        </div>
+      </LayoutSelon>
     );
   }
 
   return (
-    <LayoutEmploye>
+    <LayoutSelon>
       <h2 className="fw-bold mb-1">Mon profil</h2>
       <p className="text-muted mb-4">Informations personnelles et professionnelles</p>
 
       <div className="row g-3">
-        {/* Carte informations */}
         <div className="col-md-8">
           <div className="card-cpg p-4">
             <div className="d-flex align-items-center gap-3 mb-4">
@@ -85,7 +101,7 @@ function MonProfil() {
               </div>
               <div>
                 <h4 className="fw-bold mb-0">{profil?.prenom} {profil?.nom}</h4>
-                <p className="text-muted mb-0">{profil?.poste}</p>
+                <p className="text-muted mb-0">{profil?.matricule}</p>
               </div>
             </div>
 
@@ -112,10 +128,6 @@ function MonProfil() {
                   <td className="fw-semibold py-2">{profil?.service_code} — {profil?.service_nom}</td>
                 </tr>
                 <tr>
-                  <td className="text-muted py-2">Zone de travail</td>
-                  <td className="py-2"><span className="badge badge-cpg-neutral">{LABELS_ZONE[profil?.zone_travail] || profil?.zone_travail}</span></td>
-                </tr>
-                <tr>
                   <td className="text-muted py-2">Date d'embauche</td>
                   <td className="fw-semibold py-2">{profil?.date_embauche}</td>
                 </tr>
@@ -124,7 +136,6 @@ function MonProfil() {
           </div>
         </div>
 
-        {/* Carte sécurité */}
         <div className="col-md-4">
           <div className="card-cpg p-4">
             <h6 className="fw-bold mb-3">
@@ -187,7 +198,7 @@ function MonProfil() {
           </div>
         </div>
       </div>
-    </LayoutEmploye>
+    </LayoutSelon>
   );
 }
 

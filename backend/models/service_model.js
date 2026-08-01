@@ -38,11 +38,11 @@ async function getAllDetaille() {
     SELECT 
       s.*,
       d.nom AS departement_nom,
-      CONCAT(e.prenom, ' ', e.nom) AS responsable_nom,
+      CONCAT(e.prenom, ' ', e.nom) AS chef_nom,
       (SELECT COUNT(*) FROM employe WHERE service_id = s.id) AS nb_employes
     FROM service s
     JOIN departement d ON s.departement_id = d.id
-    LEFT JOIN employe e ON s.responsable_id = e.id
+    LEFT JOIN employe e ON s.chef_id = e.id
     ORDER BY s.code ASC
   `);
   return rows;

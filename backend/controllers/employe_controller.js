@@ -1,8 +1,9 @@
-const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const employeModel = require('../models/employe_model');
 const utilisateurModel = require('../models/utilisateur_model');
 const serviceModel = require('../models/service_model');
+const db = require('../config/database');
+
 async function getAll(req, res) {
   try {
     const employes = await employeModel.getAll();
@@ -28,32 +29,44 @@ async function getById(req, res) {
 
 async function create(req, res) {
   try {
-    const { typeCongeId, dateDebut, dateFin, motif, adresseConge, telephoneConge } = req.body;
+    const {
+      email, motDePasse, role,
+      matricule, nom, prenom, dateNaissance, dateEmbauche, serviceId
+    } = req.body;
 
-    if (!typeCongeId || !dateDebut || !dateFin) {
+    if (!email || !motDePasse || !matricule || !nom || !prenom || !dateEmbauche || !serviceId) {
       return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
-    if (new Date(dateFin) < new Date(dateDebut)) {
-      return res.status(400).json({ message: 'La date de fin doit être après la date de début' });
+
+    const utilisateurExistant = await utilisateurModel.findByEmail(email);
+    if (utilisateurExistant) {
+      return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
 
-    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
-    if (!rows[0]) {
-      return res.status(404).json({ message: 'Profil employé introuvable' });
-    }
-    const employeId = rows[0].id;
-    const nbJours = calculerNbJours(dateDebut, dateFin);
-    const pieceJustificative = req.file ? `/uploads/justificatifs/${req.file.filename}` : null;
-
-    const id = await demandeCongeModel.create({
-      employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative,
+    const motDePasseHash = await bcrypt.hash(motDePasse, 10);
+    const utilisateurId = await utilisateurModel.create({
+      email,
+      motDePasse: motDePasseHash,
+      role: role || 'EMPLOYE',
     });
-    res.status(201).json({ message: 'Demande de congé créée', id, nbJours });
+
+    const employeId = await employeModel.create({
+      utilisateurId,
+      matricule,
+      nom,
+      prenom,
+      dateNaissance,
+      dateEmbauche,
+      serviceId,
+    });
+
+    res.status(201).json({ message: 'Employé et compte créés', employeId, utilisateurId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function update(req, res) {
   try {
     const employe = await employeModel.getById(req.params.id);
@@ -81,6 +94,7 @@ async function remove(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getMonEquipe(req, res) {
   try {
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
@@ -94,14 +108,15 @@ async function getMonEquipe(req, res) {
       return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
     }
 
-    const date = req.query.date || new Date().toISOString().split('T')[0];
-    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date);
+    const today = new Date().toISOString().split('T')[0];
+    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, today);
     res.json(equipe);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getChefs(req, res) {
   try {
     const chefs = await employeModel.getEmployesAvecRoleChef();
@@ -111,6 +126,7 @@ async function getChefs(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getMonProfil(req, res) {
   try {
     const profil = await employeModel.getProfilComplet(req.utilisateur.id);
@@ -123,4 +139,5 @@ async function getMonProfil(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getById, create, update, remove, getMonEquipe, getChefs, getMonProfil};
+
+module.exports = { getAll, getById, create, update, remove, getMonEquipe, getChefs, getMonProfil };
