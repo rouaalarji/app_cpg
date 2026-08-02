@@ -1,5 +1,6 @@
 const serviceModel = require('../models/service_model');
 const db = require('../config/database');
+
 async function getAll(req, res) {
   try {
     const services = await serviceModel.getAllDetaille();
@@ -65,6 +66,7 @@ async function remove(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getMonService(req, res) {
   try {
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
@@ -81,4 +83,5 @@ async function getMonService(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 module.exports = { getAll, getById, create, update, remove, getMonService };

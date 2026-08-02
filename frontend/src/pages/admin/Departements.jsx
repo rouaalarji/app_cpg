@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react';
 import { getAll, create, update, remove } from '../../services/departementService';
-import api from '../../services/api';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function Departements() {
   const [departements, setDepartements] = useState([]);
-  const [employes, setEmployes] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [messageSucces, setMessageSucces] = useState('');
   const [recherche, setRecherche] = useState('');
 
   const [afficherForm, setAfficherForm] = useState(false);
   const [idEnEdition, setIdEnEdition] = useState(null);
-  const [formData, setFormData] = useState({ nom: '', description: '', responsableId: '', statut: 'ACTIF' });
+  const [formData, setFormData] = useState({ nom: '', description: '', lieu: '' });
 
   async function charger() {
     try {
-      const [depRes, empRes] = await Promise.all([getAll(), api.get('/employes')]);
-      setDepartements(depRes);
-      setEmployes(empRes.data);
+      const data = await getAll();
+      setDepartements(data);
     } finally {
       setChargement(false);
     }
@@ -30,7 +27,7 @@ function Departements() {
 
   function ouvrirAjout() {
     setIdEnEdition(null);
-    setFormData({ nom: '', description: '', responsableId: '', statut: 'ACTIF' });
+    setFormData({ nom: '', description: '', lieu: '' });
     setAfficherForm(true);
   }
 
@@ -39,8 +36,7 @@ function Departements() {
     setFormData({
       nom: dep.nom,
       description: dep.description || '',
-      responsableId: dep.responsable_id || '',
-      statut: dep.statut,
+      lieu: dep.lieu || '',
     });
     setAfficherForm(true);
   }
@@ -126,20 +122,15 @@ function Departements() {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Responsable</label>
-              <select name="responsableId" value={formData.responsableId} onChange={handleChange} className="form-select">
-                <option value="">-- Aucun --</option>
-                {employes.map((e) => (
-                  <option key={e.id} value={e.id}>{e.prenom} {e.nom}</option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-3">
-              <label className="form-label small fw-semibold">Statut</label>
-              <select name="statut" value={formData.statut} onChange={handleChange} className="form-select">
-                <option value="ACTIF">Actif</option>
-                <option value="INACTIF">Inactif</option>
-              </select>
+              <label className="form-label small fw-semibold">Lieu / Zone de travail</label>
+              <input
+                type="text"
+                name="lieu"
+                value={formData.lieu}
+                onChange={handleChange}
+                className="form-control"
+                placeholder="ex: Site de Redeyef"
+              />
             </div>
             <div className="d-flex gap-2">
               <button type="submit" className="btn btn-cpg-primary">{idEnEdition ? 'Enregistrer' : 'Créer'}</button>
@@ -174,10 +165,9 @@ function Departements() {
             <thead>
               <tr>
                 <th>Département</th>
-                <th>Responsable</th>
+                <th>Lieu</th>
                 <th>Services</th>
                 <th>Employés</th>
-                <th>Statut</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
@@ -185,14 +175,9 @@ function Departements() {
               {filtres.map((d) => (
                 <tr key={d.id}>
                   <td className="fw-semibold">{d.nom}</td>
-                  <td>{d.responsable_nom || <span className="text-muted">Non défini</span>}</td>
+                  <td className="text-muted">{d.lieu || '—'}</td>
                   <td><span className="badge badge-cpg-neutral">{d.nb_services}</span></td>
                   <td><span className="badge badge-cpg-success">{d.nb_employes}</span></td>
-                  <td>
-                    <span className={`badge ${d.statut === 'ACTIF' ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
-                      {d.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
-                    </span>
-                  </td>
                   <td className="text-end">
                     <button onClick={() => ouvrirEdition(d)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
                     <button onClick={() => handleSupprimer(d.id, d.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
