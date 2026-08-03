@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
 import api from '../../services/api';
 import Modal from '../../components/Modal';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
-
 const NOUVEAU = '__nouveau__';
 
 function Services() {
@@ -89,9 +90,14 @@ function Services() {
           <h2 className="fw-bold mb-1">Services</h2>
           <p className="text-muted mb-0">{services.length} service(s)</p>
         </div>
-        <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
-          <i className="bi bi-plus-lg"></i> Ajouter un service
-        </button>
+        <div className="d-flex gap-2">
+          <Link to="/admin/departements" className="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <i className="bi bi-diagram-3"></i> Gérer les départements
+          </Link>
+          <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
+            <i className="bi bi-plus-lg"></i> Ajouter un service
+          </button>
+        </div>
       </div>
 
       {messageSucces && (
