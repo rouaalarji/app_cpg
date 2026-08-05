@@ -20,6 +20,7 @@ import MonEquipe from './pages/chef/MonEquipe';
 import PresenceEquipe from './pages/chef/PresenceEquipe';
 import ValidationCongesChef from './pages/chef/ValidationCongesChef';
 import MesCongesChef from './pages/chef/MesConges';
+import DemanderCongeChef from './pages/chef/DemanderConge';
 // Espace RH/Admin
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import Employes from './pages/admin/Employes';
@@ -58,6 +59,7 @@ function App() {
           <Route path="/chef/presences-equipe" element={<RoleRoute rolesAutorises={['CHEF']}><PresenceEquipe /></RoleRoute>} />
           <Route path="/chef/validation-conges" element={<RoleRoute rolesAutorises={['CHEF']}><ValidationCongesChef /></RoleRoute>} />
           <Route path="/chef/mes-conges" element={<RoleRoute rolesAutorises={['CHEF']}><MesCongesChef /></RoleRoute>} />
+          <Route path="/chef/mes-conges/demander" element={<RoleRoute rolesAutorises={['CHEF']}><DemanderCongeChef /></RoleRoute>} />
           {/* Espace RH/Admin : réservé RH et ADMIN */}
           <Route path="/admin/dashboard" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><DashboardAdmin /></RoleRoute>} />
           <Route path="/admin/validation-conges" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><DemandesConge /></RoleRoute>} />

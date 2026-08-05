@@ -12,7 +12,7 @@ const BADGE_STATUT = {
 
 const LABELS_STATUT = {
   EN_ATTENTE: 'En attente',
-  VALIDE_CHEF: 'Validé par le chef',
+  VALIDE_CHEF: 'En attente de validation RH',
   VALIDE_RH: 'Validé (définitif)',
   REFUSE: 'Refusé',
 };

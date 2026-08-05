@@ -89,4 +89,17 @@ async function getStats(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats };
+async function getMesStats(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const stats = await absenceModel.getStatsEmploye(rows[0].id);
+    res.json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats, getMesStats };

@@ -93,8 +93,11 @@ async function create(req, res) {
 
     const pieceJustificative = req.file ? `/uploads/justificatifs/${req.file.filename}` : null;
 
+    // Un Chef ou Admin qui fait sa propre demande saute l'étape de validation Chef (il ne peut pas s'auto-valider)
+    const statutInitial = (req.utilisateur.role === 'CHEF' || req.utilisateur.role === 'ADMIN') ? 'VALIDE_CHEF' : 'EN_ATTENTE';
+
     const id = await demandeCongeModel.create({
-      employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative,
+      employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative, statutInitial,
     });
     res.status(201).json({ message: 'Demande de congé créée', id, nbJours });
   } catch (err) {

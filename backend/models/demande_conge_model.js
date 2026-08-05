@@ -38,12 +38,12 @@ async function getEnAttentePourRh() {
   return rows;
 }
 
-async function create({ employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative }) {
+async function create({ employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative, statutInitial }) {
   const [result] = await db.query(
     `INSERT INTO demande_conge 
       (employe_id, type_conge_id, date_debut, date_fin, nb_jours, motif, adresse_conge, telephone_conge, piece_justificative, statut)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-    [employeId, typeCongeId, dateDebut, dateFin, nbJours, motif || null, adresseConge || null, telephoneConge || null, pieceJustificative || null]
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [employeId, typeCongeId, dateDebut, dateFin, nbJours, motif || null, adresseConge || null, telephoneConge || null, pieceJustificative || null, statutInitial || 'EN_ATTENTE']
   );
   return result.insertId;
 }
