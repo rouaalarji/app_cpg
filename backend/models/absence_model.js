@@ -74,5 +74,23 @@ async function getStats() {
 
   return { totalNonJustifiees, totalCeMois, topEmployes, parService };
 }
+async function getStatsEmploye(employeId) {
+  const [[{ total }]] = await db.query(
+    "SELECT COUNT(*) AS total FROM absence WHERE employe_id = ? AND YEAR(date_debut) = YEAR(CURDATE())",
+    [employeId]
+  );
+  const [[{ nonJustifiees }]] = await db.query(
+    "SELECT COUNT(*) AS nonJustifiees FROM absence WHERE employe_id = ? AND statut = 'NON_JUSTIFIEE' AND YEAR(date_debut) = YEAR(CURDATE())",
+    [employeId]
+  );
+  return { total, nonJustifiees };
+}
 
-module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats };
+async function getByEmployeAndDate(employeId, date) {
+  const [rows] = await db.query(
+    'SELECT * FROM absence WHERE employe_id = ? AND date_debut = ?',
+    [employeId, date]
+  );
+  return rows[0];
+}
+module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate };

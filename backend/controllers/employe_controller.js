@@ -108,8 +108,8 @@ async function getMonEquipe(req, res) {
       return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, today);
+    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date);
     res.json(equipe);
   } catch (err) {
     console.error(err);

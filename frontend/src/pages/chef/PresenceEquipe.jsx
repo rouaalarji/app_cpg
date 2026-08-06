@@ -15,8 +15,7 @@ function formatDateAffichage(dateStr) {
 }
 
 function PresenceEquipe() {
-  const dateSelectionnee = aujourdHuiStr(); // verrouillé sur aujourd'hui uniquement
-
+const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
   const [serviceInfo, setServiceInfo] = useState(null);
   const [equipe, setEquipe] = useState([]);
   const [pointages, setPointages] = useState({});
@@ -158,17 +157,14 @@ function PresenceEquipe() {
             )}
           </div>
           <div className="col-md-4">
-            <label className="form-label small fw-semibold">Date du pointage</label>
-            <input
-              type="date"
-              value={dateSelectionnee}
-              min={dateSelectionnee}
-              max={dateSelectionnee}
-              disabled
-              className="form-control"
-              title="Le pointage ne peut se faire que pour la journée en cours"
-            />
-          </div>
+  <label className="form-label small fw-semibold">Date du pointage</label>
+  <input
+    type="date"
+    value={dateSelectionnee}
+    onChange={(e) => setDateSelectionnee(e.target.value)}
+    className="form-control"
+  />
+</div>
         </div>
       </div>
 

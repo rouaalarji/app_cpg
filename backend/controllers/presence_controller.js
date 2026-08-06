@@ -1,5 +1,6 @@
 const presenceModel = require('../models/presence_model');
 const db = require('../config/database');
+const absenceModel = require('../models/absence_model'); 
 
 async function getAll(req, res) {
   try {
@@ -88,6 +89,22 @@ async function create(req, res) {
       return res.status(400).json({ message: 'Champs obligatoires manquants (employeId, date)' });
     }
     const id = await presenceModel.create({ employeId, date, heureArrivee, heureDepart, statut });
+
+    // Si l'employé est marqué absent, créer aussi une entrée dans absence (si elle n'existe pas déjà)
+    if (statut === 'ABSENT') {
+      const absenceExistante = await absenceModel.getByEmployeAndDate(employeId, date);
+      if (!absenceExistante) {
+        await absenceModel.create({
+          employeId,
+          dateDebut: date,
+          dateFin: date,
+          motif: 'Absence constatée par le chef de service',
+          justificatif: null,
+          statut: 'NON_JUSTIFIEE',
+        });
+      }
+    }
+
     res.status(201).json({ message: 'Présence enregistrée', id });
   } catch (err) {
     console.error(err);
