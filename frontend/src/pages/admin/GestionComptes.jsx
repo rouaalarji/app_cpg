@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
+const LABELS_ROLE = {
+  EMPLOYE: 'Employé',
+  CHEF: 'Chef',
+  RH: 'RH',
+  ADMIN: 'Admin',
+};
+
 function GestionComptes() {
   const [comptes, setComptes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -20,16 +27,9 @@ function GestionComptes() {
     charger();
   }, []);
 
-  async function handleChangerRole(id, nouveauRole) {
-    try {
-      await api.patch(`/utilisateurs/${id}/role`, { role: nouveauRole });
-      charger();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Erreur');
-    }
-  }
-
-  async function handleToggleActif(id, actifActuel) {
+  async function handleToggleActif(id, actifActuel, email) {
+    const action = actifActuel ? 'désactiver' : 'activer';
+    if (!window.confirm(`Voulez-vous ${action} le compte ${email} ?`)) return;
     try {
       await api.patch(`/utilisateurs/${id}/statut`, { actif: !actifActuel });
       charger();
@@ -79,19 +79,7 @@ function GestionComptes() {
               {filtres.map((c) => (
                 <tr key={c.id}>
                   <td className="fw-semibold">{c.email}</td>
-                  <td>
-                    <select
-                      value={c.role}
-                      onChange={(e) => handleChangerRole(c.id, e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ width: '150px' }}
-                    >
-                      <option value="EMPLOYE">Employé</option>
-                      <option value="CHEF">Chef</option>
-                      <option value="RH">RH</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                  </td>
+                  <td><span className="badge badge-cpg-neutral">{LABELS_ROLE[c.role] || c.role}</span></td>
                   <td>
                     {c.employe_id ? (
                       <span className="badge badge-cpg-success">Liée</span>
@@ -105,7 +93,7 @@ function GestionComptes() {
                     </span>
                   </td>
                   <td className="text-end">
-                    <button onClick={() => handleToggleActif(c.id, c.actif)} className="btn btn-sm btn-outline-secondary">
+                    <button onClick={() => handleToggleActif(c.id, c.actif, c.email)} className="btn btn-sm btn-outline-secondary">
                       {c.actif ? 'Désactiver' : 'Activer'}
                     </button>
                   </td>
