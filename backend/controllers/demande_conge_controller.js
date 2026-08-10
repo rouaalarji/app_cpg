@@ -2,6 +2,7 @@ const demandeCongeModel = require('../models/demande_conge_model');
 const employeModel = require('../models/employe_model');
 const typeCongeModel = require('../models/type_conge_model');
 const serviceModel = require('../models/service_model');
+const notificationModel = require('../models/notification_model');
 const db = require('../config/database');
 
 function calculerNbJours(dateDebut, dateFin) {
@@ -59,7 +60,7 @@ async function create(req, res) {
       return res.status(400).json({ message: 'La date de fin doit être après la date de début' });
     }
 
-    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    const [rows] = await db.query('SELECT id, service_id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
     if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
@@ -99,6 +100,23 @@ async function create(req, res) {
     const id = await demandeCongeModel.create({
       employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative, statutInitial,
     });
+
+    // Notifier le chef du service si la demande attend son avis
+    if (statutInitial === 'EN_ATTENTE') {
+      const service = await serviceModel.getById(rows[0].service_id);
+      if (service?.chef_id) {
+        const [chefUser] = await db.query('SELECT utilisateur_id FROM employe WHERE id = ?', [service.chef_id]);
+        if (chefUser[0]) {
+          await notificationModel.create({
+            utilisateurId: chefUser[0].utilisateur_id,
+            titre: 'Nouvelle demande de congé',
+            message: 'Une demande de congé attend votre validation.',
+            lien: '/chef/validation-conges',
+          });
+        }
+      }
+    }
+
     res.status(201).json({ message: 'Demande de congé créée', id, nbJours });
   } catch (err) {
     console.error(err);
@@ -153,6 +171,18 @@ async function validerParChef(req, res) {
     }
 
     await demandeCongeModel.validerParChef(req.params.id, chefEmployeId);
+
+    // Notifier l'employé
+    const [empUser] = await db.query('SELECT utilisateur_id FROM employe WHERE id = ?', [demande.employe_id]);
+    if (empUser[0]) {
+      await notificationModel.create({
+        utilisateurId: empUser[0].utilisateur_id,
+        titre: 'Congé validé par votre chef',
+        message: 'Votre demande de congé est en attente de validation RH.',
+        lien: '/employe/mes-conges',
+      });
+    }
+
     res.json({ message: 'Demande validée par le chef, en attente de validation RH' });
   } catch (err) {
     console.error(err);
@@ -174,6 +204,18 @@ async function validerParRh(req, res) {
     const rhEmployeId = rows[0]?.id;
 
     await demandeCongeModel.validerParRh(req.params.id, rhEmployeId);
+
+    // Notifier l'employé
+    const [empUser] = await db.query('SELECT utilisateur_id FROM employe WHERE id = ?', [demande.employe_id]);
+    if (empUser[0]) {
+      await notificationModel.create({
+        utilisateurId: empUser[0].utilisateur_id,
+        titre: 'Congé validé définitivement',
+        message: 'Votre demande de congé a été validée par les Ressources Humaines.',
+        lien: '/employe/mes-conges',
+      });
+    }
+
     res.json({ message: 'Demande validée définitivement par RH' });
   } catch (err) {
     console.error(err);
@@ -192,6 +234,18 @@ async function refuser(req, res) {
     }
 
     await demandeCongeModel.refuser(req.params.id, req.body.commentaire);
+
+    // Notifier l'employé
+    const [empUser] = await db.query('SELECT utilisateur_id FROM employe WHERE id = ?', [demande.employe_id]);
+    if (empUser[0]) {
+      await notificationModel.create({
+        utilisateurId: empUser[0].utilisateur_id,
+        titre: 'Demande de congé refusée',
+        message: req.body.commentaire ? `Motif : ${req.body.commentaire}` : 'Votre demande a été refusée.',
+        lien: '/employe/mes-conges',
+      });
+    }
+
     res.json({ message: 'Demande refusée' });
   } catch (err) {
     console.error(err);

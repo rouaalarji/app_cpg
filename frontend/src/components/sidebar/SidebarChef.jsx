@@ -1,14 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import cpg_log from '../../assets/cpg_log.png';
-
+import NotificationBell from '../NotificationBell';
 function SidebarChef({ ouvert, setOuvert }) {
   const { utilisateur, deconnecter } = useAuth();
   const location = useLocation();
 
   const liens = [
     { to: '/chef/dashboard', label: 'Dashboard', icone: 'bi-speedometer2' },
-      { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
+    { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
     { to: '/chef/mon-equipe', label: 'Mon équipe', icone: 'bi-people' },
     { to: '/chef/presences-equipe', label: 'Présences équipe', icone: 'bi-clock-history' },
     { to: '/chef/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
@@ -28,6 +28,7 @@ function SidebarChef({ ouvert, setOuvert }) {
     >
       <div className={`d-flex align-items-center p-3 ${ouvert ? 'justify-content-between' : 'justify-content-center'}`}>
         {ouvert && <img src={cpg_log} alt="Logo CPG" style={{ height: '34px', objectFit: 'contain' }} />}
+        {ouvert && <NotificationBell />}
         <button onClick={() => setOuvert(!ouvert)} className="btn btn-sm text-white border-0">
           <i className={`bi ${ouvert ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
         </button>
@@ -44,9 +45,8 @@ function SidebarChef({ ouvert, setOuvert }) {
           <Link
             key={lien.to}
             to={lien.to}
-            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${
-              location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
-            }`}
+            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
+              }`}
             onMouseEnter={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
             onMouseLeave={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'transparent'; }}
           >

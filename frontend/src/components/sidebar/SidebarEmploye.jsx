@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import cpg_log from '../../assets/cpg_log.png';
+import NotificationBell from '../NotificationBell';
 function SidebarEmploye({ ouvert, setOuvert }) {
   const { utilisateur, deconnecter } = useAuth();
   const location = useLocation();
@@ -27,10 +28,8 @@ function SidebarEmploye({ ouvert, setOuvert }) {
       {/* En-tête */}
       <div className={`d-flex align-items-center p-3 ${ouvert ? 'justify-content-between' : 'justify-content-center'}`}>
         {ouvert && <img src={cpg_log} alt="Logo CPG" style={{ height: '34px', objectFit: 'contain' }} />}
-        <button
-          onClick={() => setOuvert(!ouvert)}
-          className="btn btn-sm text-white border-0"
-        >
+        {ouvert && <NotificationBell />}
+        <button onClick={() => setOuvert(!ouvert)} className="btn btn-sm text-white border-0">
           <i className={`bi ${ouvert ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
         </button>
       </div>
@@ -47,9 +46,8 @@ function SidebarEmploye({ ouvert, setOuvert }) {
           <Link
             key={lien.to}
             to={lien.to}
-            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${
-              location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
-            }`}
+            className={`d-flex align-items-center gap-2 text-decoration-none text-white rounded px-2 py-2 mb-1 ${location.pathname === lien.to ? 'bg-white bg-opacity-25' : ''
+              }`}
             style={{ transition: 'background 0.15s ease' }}
             onMouseEnter={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
             onMouseLeave={(e) => { if (location.pathname !== lien.to) e.currentTarget.style.background = 'transparent'; }}

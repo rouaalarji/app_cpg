@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import cpg_log from '../../assets/cpg_log.png';
-
+import NotificationBell from '../NotificationBell';
 function SidebarAdmin({ ouvert, setOuvert }) {
   const { utilisateur, deconnecter } = useAuth();
   const location = useLocation();
@@ -9,7 +9,7 @@ function SidebarAdmin({ ouvert, setOuvert }) {
 
   const liensCommuns = [
     { to: '/admin/dashboard', label: 'Dashboard', icone: 'bi-speedometer2' },
-      { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
+    { to: '/employe/profil', label: 'Mon profil', icone: 'bi-person' },
     { to: '/admin/validation-conges', label: 'Validation congés', icone: 'bi-check2-square' },
     { to: '/admin/employes', label: 'Employés', icone: 'bi-people' },
     { to: '/admin/services', label: 'Départements / Services', icone: 'bi-diagram-3' },
@@ -35,11 +35,11 @@ function SidebarAdmin({ ouvert, setOuvert }) {
     >
       <div className={`d-flex align-items-center p-3 ${ouvert ? 'justify-content-between' : 'justify-content-center'}`}>
         {ouvert && <img src={cpg_log} alt="Logo CPG" style={{ height: '34px', objectFit: 'contain' }} />}
+        {ouvert && <NotificationBell />}
         <button onClick={() => setOuvert(!ouvert)} className="btn btn-sm text-white border-0">
           <i className={`bi ${ouvert ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
         </button>
       </div>
-
       {ouvert && (
         <div className="px-3 mb-2">
           <span className="badge bg-light text-dark">
