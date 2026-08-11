@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMesNotifications, marquerLue, marquerToutesLues } from '../services/notificationService';
+import { createPortal } from 'react-dom';
 
 function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [nonLues, setNonLues] = useState(0);
   const [ouvert, setOuvert] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
   const ref = useRef(null);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
   async function charger() {
@@ -27,13 +30,35 @@ function NotificationBell() {
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
+      if (
+        ref.current && !ref.current.contains(e.target) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target)
+      ) {
         setOuvert(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  function handleToggle() {
+    if (!ouvert && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const largeurDropdown = 320;
+      let left = rect.left;
+
+      // évite que le dropdown dépasse à droite de l'écran
+      if (left + largeurDropdown > window.innerWidth) {
+        left = rect.right - largeurDropdown;
+      }
+
+      setPosition({
+        top: rect.bottom + 8, // 8px sous le bouton
+        left,
+      });
+    }
+    setOuvert(!ouvert);
+  }
 
   async function handleClicNotification(notif) {
     if (!notif.lue) {
@@ -52,7 +77,7 @@ function NotificationBell() {
   return (
     <div className="position-relative" ref={ref}>
       <button
-        onClick={() => setOuvert(!ouvert)}
+        onClick={handleToggle}
         className="btn btn-sm text-white border-0 position-relative"
       >
         <i className="bi bi-bell fs-5"></i>
@@ -66,18 +91,20 @@ function NotificationBell() {
         )}
       </button>
 
-      {ouvert && (
+      {ouvert && createPortal(
         <div
-          className="position-absolute bg-white shadow-lg"
+          ref={dropdownRef}
+          className="bg-white shadow-lg"
           style={{
-            top: '110%',
-            left: 0,
+            position: 'fixed',
+            top: position.top,
+            left: position.left,
             width: '320px',
             maxHeight: '400px',
             overflowY: 'auto',
             borderRadius: '12px',
             border: '1px solid var(--cpg-border)',
-            zIndex: 2000,
+            zIndex: 9999,
           }}
         >
           <div className="d-flex justify-content-between align-items-center p-3 border-bottom" style={{ borderColor: 'var(--cpg-border)' }}>
@@ -111,7 +138,8 @@ function NotificationBell() {
               </p>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

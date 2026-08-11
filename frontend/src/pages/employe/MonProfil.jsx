@@ -13,6 +13,22 @@ const LABELS_ROLE = {
   ADMIN: 'Administrateur',
 };
 
+function calculerAnciennete(dateStr) {
+  if (!dateStr) return null;
+  // supporte DD/MM/YYYY ou YYYY-MM-DD
+  let d;
+  if (dateStr.includes('/')) {
+    const [j, m, a] = dateStr.split('/');
+    d = new Date(`${a}-${m}-${j}`);
+  } else {
+    d = new Date(dateStr);
+  }
+  if (isNaN(d.getTime())) return null;
+  const ans = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+  if (ans < 0) return null;
+  return ans < 1 ? "Moins d'un an" : `${Math.floor(ans)} an${Math.floor(ans) > 1 ? 's' : ''}`;
+}
+
 function MonProfil() {
   const { utilisateur } = useAuth();
 
@@ -102,9 +118,51 @@ function MonProfil() {
     { icone: 'bi-briefcase', label: 'Statut', valeur: LABELS_ROLE[profil?.role] || profil?.role },
   ];
 
+  const anciennete = calculerAnciennete(profil?.date_embauche);
+  const chipsRapides = [
+    profil?.matricule && { icone: 'bi-hash', texte: profil.matricule },
+    anciennete && { icone: 'bi-award', texte: anciennete },
+    profil?.service_code && { icone: 'bi-buildings', texte: profil.service_code },
+  ].filter(Boolean);
+
   return (
     <LayoutSelon>
-      <div className="mb-4">
+      <style>{`
+        @keyframes profilFadeUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .profil-anim { animation: profilFadeUp 0.45s ease both; }
+        .profil-anim-1 { animation-delay: 0.05s; }
+        .profil-anim-2 { animation-delay: 0.12s; }
+        @media (prefers-reduced-motion: reduce) {
+          .profil-anim { animation: none; }
+        }
+        .profil-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 12px;
+          border-radius: 999px;
+          background: rgba(32, 30, 30, 0.16);
+          color: #333131;
+          font-size: 12.5px;
+          font-weight: 600;
+          backdrop-filter: blur(4px);
+        }
+        .profil-champ-row:not(:last-child) {
+          border-bottom: 1px solid var(--cpg-border);
+          padding-bottom: 18px;
+          margin-bottom: 18px;
+        }
+        .profil-mdp-btn:hover {
+          background: var(--cpg-primary-light) !important;
+          border-color: var(--cpg-primary) !important;
+          color: var(--cpg-primary) !important;
+        }
+      `}</style>
+
+      <div className="mb-4 profil-anim">
         <p className="text-uppercase small fw-semibold mb-1" style={{ color: 'var(--cpg-accent)', letterSpacing: '0.08em' }}>
           Espace personnel
         </p>
@@ -115,31 +173,65 @@ function MonProfil() {
         {/* Colonne principale */}
         <div className="col-lg-8">
           <div
-            className="overflow-hidden"
+            className="overflow-hidden profil-anim profil-anim-1"
             style={{
               borderRadius: '16px',
               border: '1px solid var(--cpg-border)',
               background: '#fff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             }}
           >
             {/* Bannière avec motif subtil */}
-           
-  
+            <div
+              style={{
+                height: '130px',
+                position: 'relative',
+                background: 'linear-gradient(120deg, #ffffff, #f0f2f5)',
+                backgroundImage: `
+      radial-gradient(circle, rgba(255, 255, 255, 0.95) 1.5px, transparent 1.5px),
+      linear-gradient(120deg, #e8ebee, #f5f6f7)
+    `,
+                backgroundSize: '18px 18px, 100% 100%',
+              }}
+            >
+              <div className="position-absolute d-flex gap-2" style={{ top: '16px', right: '20px' }}>
+                {chipsRapides.map((c, i) => (
+                  <span key={i} className="profil-chip">
+                    <i className={`bi ${c.icone}`}></i> {c.texte}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className="px-4 px-md-5 pb-5">
               <div className="d-flex flex-column align-items-start">
-                <div
-                  className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold flex-shrink-0"
-                  style={{
-                    width: '96px',
-                    height: '96px',
-                    marginTop: '-48px',
-                    background: 'linear-gradient(135deg, var(--cpg-primary), var(--cpg-accent))',
-                    fontSize: '30px',
-                    border: '5px solid #fff',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  {profil?.prenom?.charAt(0)}{profil?.nom?.charAt(0)}
+                <div style={{ position: 'relative', marginTop: '-48px' }}>
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold flex-shrink-0"
+                    style={{
+                      width: '96px',
+                      height: '96px',
+                      background: 'linear-gradient(135deg, var(--cpg-primary), var(--cpg-accent))',
+                      fontSize: '30px',
+                      border: '5px solid #fff',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    {profil?.prenom?.charAt(0)}{profil?.nom?.charAt(0)}
+                  </div>
+                  <span
+                    title="En ligne"
+                    style={{
+                      position: 'absolute',
+                      bottom: '4px',
+                      right: '4px',
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      background: '#22c55e',
+                      border: '3px solid #fff',
+                    }}
+                  />
                 </div>
                 <div className="mt-3">
                   <h3 className="fw-bold mb-1" style={{ letterSpacing: '-0.01em' }}>
@@ -165,10 +257,10 @@ function MonProfil() {
                 <p className="text-uppercase small fw-semibold text-muted mb-4" style={{ letterSpacing: '0.06em' }}>
                   Informations professionnelles
                 </p>
-                <div className="row g-4">
+                <div className="row g-0">
                   {champs.map((c, i) => (
-                    <div key={i} className="col-sm-6">
-                      <div className="d-flex align-items-start gap-3">
+                    <div key={i} className="col-sm-6 pe-sm-4">
+                      <div className="d-flex align-items-start gap-3 profil-champ-row">
                         <div
                           className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                           style={{ width: '42px', height: '42px', background: '#f8fafc', border: '1px solid var(--cpg-border)' }}
@@ -191,7 +283,7 @@ function MonProfil() {
         {/* Colonne sécurité */}
         <div className="col-lg-4">
           <div
-            className="p-4"
+            className="p-4 profil-anim profil-anim-2"
             style={{
               borderRadius: '16px',
               border: '1px solid var(--cpg-border)',
@@ -215,7 +307,7 @@ function MonProfil() {
             {!afficherFormMdp && (
               <button
                 onClick={() => setAfficherFormMdp(true)}
-                className="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                className="btn w-100 d-flex align-items-center justify-content-center gap-2 profil-mdp-btn"
                 style={{
                   border: '1px solid var(--cpg-border)',
                   borderRadius: '10px',
@@ -223,6 +315,7 @@ function MonProfil() {
                   fontWeight: 500,
                   color: 'var(--cpg-text)',
                   background: '#f8fafc',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <i className="bi bi-key-fill"></i> Changer mon mot de passe
