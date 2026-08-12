@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react';
 import { getAll, validerParRh, refuser } from '../../services/demandeCongeService';
+import DetailDemandeConge from '../../components/DetailDemandeConge';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
-const COULEURS_STATUT = {
-  EN_ATTENTE: 'bg-warning text-dark',
-  VALIDE_CHEF: 'bg-primary',
-  VALIDE_RH: 'bg-success',
-  REFUSE: 'bg-danger',
+const BADGE_STATUT = {
+  EN_ATTENTE: 'badge-cpg-warning',
+  VALIDE_CHEF: 'badge-cpg-neutral',
+  VALIDE_RH: 'badge-cpg-success',
+  REFUSE: 'badge-cpg-danger',
 };
 
 const LABELS_STATUT = {
   EN_ATTENTE: 'En attente',
-  VALIDE_CHEF: 'Validé par le chef',
-  VALIDE_RH: 'Validé (définitif)',
-  REFUSE: 'Refusé',
+  VALIDE_CHEF: 'Validée par le chef',
+  VALIDE_RH: 'Validée (définitif)',
+  REFUSE: 'Refusée',
 };
 
 function DemandesConge() {
   const [demandes, setDemandes] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
+  const [demandeSelectionnee, setDemandeSelectionnee] = useState(null);
 
   async function charger() {
     try {
@@ -40,6 +42,7 @@ function DemandesConge() {
     if (!window.confirm('Valider définitivement cette demande ?')) return;
     try {
       await validerParRh(id);
+      setDemandeSelectionnee(null);
       charger();
     } catch (err) {
       alert(err.response?.data?.message || 'Erreur lors de la validation');
@@ -54,6 +57,7 @@ function DemandesConge() {
     }
     try {
       await refuser(id, commentaire);
+      setDemandeSelectionnee(null);
       charger();
     } catch (err) {
       alert(err.response?.data?.message || 'Erreur lors du refus');
@@ -62,18 +66,20 @@ function DemandesConge() {
 
   return (
     <LayoutAdmin>
-      <h2 className="fw-bold mb-3">Gestion des demandes de congé</h2>
+      <h2 className="fw-bold mb-1">Gestion des demandes de congé</h2>
+      <p className="text-muted mb-4">{demandes.length} demande(s) au total</p>
 
-      {chargement && <p>Chargement...</p>}
       {erreur && <div className="alert alert-danger">{erreur}</div>}
 
-      {!chargement && demandes.length === 0 && (
-        <p className="text-muted">Aucune demande pour l'instant.</p>
-      )}
+      <div className="card-cpg p-0 overflow-hidden">
+        {chargement && <p className="p-4 mb-0 text-muted">Chargement...</p>}
 
-      {!chargement && demandes.length > 0 && (
-        <div className="table-responsive">
-          <table className="table table-hover align-middle bg-white card-cpg">
+        {!chargement && demandes.length === 0 && (
+          <div className="p-5 text-center text-muted">Aucune demande pour l'instant.</div>
+        )}
+
+        {!chargement && demandes.length > 0 && (
+          <table className="table table-cpg mb-0">
             <thead>
               <tr>
                 <th>Employé</th>
@@ -81,38 +87,36 @@ function DemandesConge() {
                 <th>Dates</th>
                 <th>Nb jours</th>
                 <th>Statut</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {demandes.map((d) => (
-                <tr key={d.id}>
-                  <td>{d.employe_prenom} {d.employe_nom} <span className="text-muted small">({d.matricule})</span></td>
+                <tr
+                  key={d.id}
+                  onClick={() => setDemandeSelectionnee(d)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td className="fw-semibold">{d.employe_prenom} {d.employe_nom} <span className="text-muted small">({d.matricule})</span></td>
                   <td>{d.type_conge_nom}</td>
                   <td>{d.date_debut} → {d.date_fin}</td>
                   <td>{d.nb_jours}</td>
                   <td>
-                    <span className={`badge ${COULEURS_STATUT[d.statut]}`}>
-                      {LABELS_STATUT[d.statut]}
-                    </span>
-                  </td>
-                  <td>
-                    {(d.statut === 'EN_ATTENTE' || d.statut === 'VALIDE_CHEF') && (
-                      <>
-                        <button onClick={() => handleValider(d.id)} className="btn btn-sm btn-outline-success me-1">
-                          Valider
-                        </button>
-                        <button onClick={() => handleRefuser(d.id)} className="btn btn-sm btn-outline-danger">
-                          Refuser
-                        </button>
-                      </>
-                    )}
+                    <span className={`badge ${BADGE_STATUT[d.statut]}`}>{LABELS_STATUT[d.statut]}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        )}
+      </div>
+
+      {demandeSelectionnee && (
+        <DetailDemandeConge
+          demande={demandeSelectionnee}
+          onFermer={() => setDemandeSelectionnee(null)}
+          onValider={handleValider}
+          onRefuser={handleRefuser}
+        />
       )}
     </LayoutAdmin>
   );

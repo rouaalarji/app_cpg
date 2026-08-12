@@ -1,7 +1,14 @@
 const db = require('../config/database');
 
 async function getAll() {
-  const [rows] = await db.query('SELECT * FROM demande_conge ORDER BY date_creation DESC');
+  const [rows] = await db.query(`
+    SELECT dc.*, e.nom AS employe_nom, e.prenom AS employe_prenom, e.matricule,
+           tc.nom AS type_conge_nom
+    FROM demande_conge dc
+    JOIN employe e ON dc.employe_id = e.id
+    JOIN type_conge tc ON dc.type_conge_id = tc.id
+    ORDER BY dc.date_creation DESC
+  `);
   return rows;
 }
 
