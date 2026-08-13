@@ -93,4 +93,31 @@ async function getByEmployeAndDate(employeId, date) {
   );
   return rows[0];
 }
-module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate };
+async function getHistoriqueMensuel() {
+  const [rows] = await db.query(`
+    SELECT 
+      DATE_FORMAT(date_debut, '%Y-%m') AS mois,
+      COUNT(*) AS total,
+      SUM(CASE WHEN statut = 'JUSTIFIEE' THEN 1 ELSE 0 END) AS justifiees,
+      SUM(CASE WHEN statut = 'NON_JUSTIFIEE' THEN 1 ELSE 0 END) AS non_justifiees
+    FROM absence
+    WHERE date_debut >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+    GROUP BY DATE_FORMAT(date_debut, '%Y-%m')
+    ORDER BY mois ASC
+  `);
+  return rows;
+}
+
+async function getByMois(mois) {
+  // mois au format 'YYYY-MM'
+  const [rows] = await db.query(`
+    SELECT a.*, e.nom AS employe_nom, e.prenom AS employe_prenom, s.nom AS service_nom
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    JOIN service s ON e.service_id = s.id
+    WHERE DATE_FORMAT(a.date_debut, '%Y-%m') = ?
+    ORDER BY a.date_debut DESC
+  `, [mois]);
+  return rows;
+}
+module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate, getHistoriqueMensuel, getByMois };

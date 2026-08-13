@@ -1,6 +1,6 @@
 
 const db = require('../config/database');
-
+const employeModel = require('../models/employe_model');
 async function getStats(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];

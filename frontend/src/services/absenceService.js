@@ -24,5 +24,14 @@ async function update(id, absence) {
   const response = await api.put(`/absences/${id}`, absence);
   return response.data;
 }
+async function getHistoriqueMensuel() {
+  const res = await api.get('/absences/historique-mensuel');
+  return res.data;
+}
 
-export { getMesAbsences, create, getAllAdmin, getStats, update };
+async function getByMois(mois) {
+  const res = await api.get(`/absences/mois/${mois}`);
+  return res.data;
+}
+
+export { getMesAbsences, create, getAllAdmin, getStats, update, getHistoriqueMensuel, getByMois };

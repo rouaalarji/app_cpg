@@ -102,4 +102,24 @@ async function getMesStats(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats, getMesStats };
+async function getHistoriqueMensuel(req, res) {
+  try {
+    const historique = await absenceModel.getHistoriqueMensuel();
+    res.json(historique);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
+async function getByMois(req, res) {
+  try {
+    const { mois } = req.params; // format YYYY-MM
+    const absences = await absenceModel.getByMois(mois);
+    res.json(absences);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats, getMesStats, getHistoriqueMensuel, getByMois };
