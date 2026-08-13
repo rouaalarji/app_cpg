@@ -1,7 +1,12 @@
 const db = require('../config/database');
 
 async function getAll() {
-  const [rows] = await db.query('SELECT * FROM employe');
+  const [rows] = await db.query(`
+    SELECT e.*, s.nom AS service_nom
+    FROM employe e
+    LEFT JOIN service s ON e.service_id = s.id
+    ORDER BY e.nom
+  `);
   return rows;
 }
 

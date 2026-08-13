@@ -49,7 +49,7 @@ function Employes() {
   }
 
   const employesFiltres = employes.filter((emp) =>
-    `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.poste}`.toLowerCase().includes(recherche.toLowerCase())
+    `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.service_nom}`.toLowerCase().includes(recherche.toLowerCase())
   );
 
   return (
@@ -104,7 +104,7 @@ function Employes() {
                 <tr>
                   <th>Employé</th>
                   <th>Matricule</th>
-                  <th>Poste</th>
+                  <th>Service</th>
                   <th>Statut</th>
                   <th className="text-end">Actions</th>
                 </tr>
@@ -126,7 +126,7 @@ function Employes() {
                       </div>
                     </td>
                     <td className="text-muted">{emp.matricule}</td>
-                    <td>{emp.poste}</td>
+                    <td>{emp.service_nom || '—'}</td>
                     <td>
                       <span className={`badge ${emp.statut === 'ACTIF' ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
                         {emp.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
