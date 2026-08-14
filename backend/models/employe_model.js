@@ -84,8 +84,21 @@ async function update(id, employe) {
 async function remove(id) {
   await db.query('DELETE FROM employe WHERE id = ?', [id]);
 }
+async function getDernierMatricule() {
+  const [rows] = await db.query(
+    "SELECT matricule FROM employe ORDER BY CAST(matricule AS UNSIGNED) DESC LIMIT 1"
+  );
+  return rows[0]?.matricule || null;
+}
+
+function genererProchainMatricule(dernierMatricule) {
+  if (!dernierMatricule) return '0001';
+  const numero = parseInt(dernierMatricule, 10);
+  const prochain = numero + 1;
+  return String(prochain).padStart(4, '0');
+}
 
 module.exports = {
   getAll, getById, getByServiceId, getByServiceIdAvecPresence, getServiceIdParUtilisateur,
-  getEmployesAvecRoleChef, getProfilComplet, create, update, remove,
+  getEmployesAvecRoleChef, getProfilComplet, create, update, remove, getDernierMatricule, genererProchainMatricule
 };

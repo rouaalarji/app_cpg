@@ -88,10 +88,6 @@ function AjouterEmploye() {
 
           <h6 className="text-uppercase text-muted small fw-bold mb-3 mt-3">Informations employé</h6>
 
-          <div className="mb-3">
-            <label className="form-label small fw-semibold">Matricule</label>
-            <input type="text" name="matricule" value={formData.matricule} onChange={handleChange} required className="form-control" />
-          </div>
 
           <div className="row">
             <div className="col-md-6 mb-3">

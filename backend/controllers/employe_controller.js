@@ -31,10 +31,10 @@ async function create(req, res) {
   try {
     const {
       email, motDePasse, role,
-      matricule, nom, prenom, dateNaissance, dateEmbauche, serviceId
+      nom, prenom, dateNaissance, dateEmbauche, serviceId
     } = req.body;
 
-    if (!email || !motDePasse || !matricule || !nom || !prenom || !dateEmbauche || !serviceId) {
+    if (!email || !motDePasse || !nom || !prenom || !dateEmbauche || !serviceId) {
       return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
 
@@ -42,6 +42,10 @@ async function create(req, res) {
     if (utilisateurExistant) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
+
+    // Génération automatique du matricule (numérique, 4 chiffres)
+    const dernierMatricule = await employeModel.getDernierMatricule();
+    const matricule = employeModel.genererProchainMatricule(dernierMatricule);
 
     const motDePasseHash = await bcrypt.hash(motDePasse, 10);
     const utilisateurId = await utilisateurModel.create({
@@ -60,7 +64,7 @@ async function create(req, res) {
       serviceId,
     });
 
-    res.status(201).json({ message: 'Employé et compte créés', employeId, utilisateurId });
+    res.status(201).json({ message: 'Employé et compte créés', employeId, utilisateurId, matricule });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
