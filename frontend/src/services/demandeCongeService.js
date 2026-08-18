@@ -33,4 +33,8 @@ async function getSolde(typeCongeId) {
   const response = await api.get(`/demandes-conge/solde/${typeCongeId}`);
   return response.data;
 }
-export { getMesDemandes, getAll, create, annuler, validerParRh, refuser,getSolde };
+async function getResumePersonnel() {
+  const response = await api.get('/demandes-conge/resume-personnel');
+  return response.data;
+}
+export { getMesDemandes, getAll, create, annuler, validerParRh, refuser,getSolde, getResumePersonnel };

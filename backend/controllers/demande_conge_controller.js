@@ -305,4 +305,25 @@ async function getSolde(req, res) {
   }
 }
 
-module.exports = { getAll, getById, getMesDemandes, create, annuler, validerParChef, validerParRh, refuser, getMonEquipe, getSolde };
+async function getResumePersonnel(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const employeId = rows[0].id;
+
+    const [[{ enAttente }]] = await db.query(
+      "SELECT COUNT(*) AS enAttente FROM demande_conge WHERE employe_id = ? AND statut IN ('EN_ATTENTE', 'VALIDE_CHEF')",
+      [employeId]
+    );
+
+    const prochainConge = await demandeCongeModel.getProchainCongeValide(employeId);
+
+    res.json({ enAttente, prochainConge });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getById, getMesDemandes, create, annuler, validerParChef, validerParRh, refuser, getMonEquipe, getSolde, getResumePersonnel };

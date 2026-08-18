@@ -118,7 +118,16 @@ async function annuler(id, employeId) {
   );
   return result.affectedRows > 0;
 }
+async function getProchainCongeValide(employeId) {
+  const [rows] = await db.query(
+    `SELECT * FROM demande_conge 
+     WHERE employe_id = ? AND statut = 'VALIDE_RH' AND date_fin >= CURDATE()
+     ORDER BY date_debut ASC LIMIT 1`,
+    [employeId]
+  );
+  return rows[0];
+}
 module.exports = {
   getAll, getById, getByEmployeId, getEnAttentePourChef, getEnAttentePourRh,
-  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee, getChevauchement, annuler
+  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee, getChevauchement, annuler, getProchainCongeValide
 };
