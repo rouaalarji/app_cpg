@@ -8,4 +8,8 @@ async function getStatsChef() {
   const response = await api.get('/dashboard/stats-chef');
   return response.data;
 }
-export { getStats, getStatsChef };
+async function getDemandesConge() {
+  const response = await api.get('/dashboard/demandes-conge-equipe');
+  return response.data;
+}
+export { getStats, getStatsChef, getDemandesConge };

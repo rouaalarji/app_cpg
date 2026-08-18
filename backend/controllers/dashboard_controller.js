@@ -1,6 +1,8 @@
 
 const db = require('../config/database');
 const employeModel = require('../models/employe_model');
+const serviceModel = require('../models/service_model');
+const congeModel = require('../models/demande_conge_model');
 async function getStats(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -170,5 +172,25 @@ async function getStatsChef(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+async function getDemandesConge(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const monEmployeId = rows[0].id;
 
-module.exports = { getStats, getStatsChef };
+    const service = await serviceModel.getServiceParResponsable(monEmployeId);
+    if (!service) {
+      return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
+    }
+
+    const demandes = await congeModel.getParServiceEnAttente(service.id);
+    res.json(demandes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
+module.exports = { getStats, getStatsChef, getDemandesConge };
