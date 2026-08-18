@@ -15,7 +15,7 @@ function formatDateAffichage(dateStr) {
 }
 
 function PresenceEquipe() {
-const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
+  const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
   const [serviceInfo, setServiceInfo] = useState(null);
   const [equipe, setEquipe] = useState([]);
   const [pointages, setPointages] = useState({});
@@ -67,6 +67,13 @@ const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
     setPointages((prev) => ({
       ...prev,
       [employeId]: { ...prev[employeId], heureArrivee: heureActuelle(), statut: 'PRESENT', modifie: true },
+    }));
+  }
+
+  function marquerRetard(employeId) {
+    setPointages((prev) => ({
+      ...prev,
+      [employeId]: { ...prev[employeId], heureArrivee: heureActuelle(), statut: 'RETARD', modifie: true },
     }));
   }
 
@@ -157,14 +164,14 @@ const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
             )}
           </div>
           <div className="col-md-4">
-  <label className="form-label small fw-semibold">Date du pointage</label>
-  <input
-    type="date"
-    value={dateSelectionnee}
-    onChange={(e) => setDateSelectionnee(e.target.value)}
-    className="form-control"
-  />
-</div>
+            <label className="form-label small fw-semibold">Date du pointage</label>
+            <input
+              type="date"
+              value={dateSelectionnee}
+              onChange={(e) => setDateSelectionnee(e.target.value)}
+              className="form-control"
+            />
+          </div>
         </div>
       </div>
 
@@ -223,13 +230,24 @@ const [dateSelectionnee, setDateSelectionnee] = useState(aujourdHuiStr());
                     <td>{p.heureArrivee || '—'}</td>
                     <td>{p.heureDepart || '—'}</td>
                     <td>
-                      <span className={`badge ${p.statut === 'PRESENT' ? 'badge-cpg-success' : p.statut === 'ABSENT' ? 'badge-cpg-danger' : 'badge-cpg-neutral'}`}>
-                        {p.statut === 'PRESENT' ? 'Présent' : p.statut === 'ABSENT' ? 'Absent' : 'Non pointé'}
+                      <span className={`badge ${
+                        p.statut === 'PRESENT' ? 'badge-cpg-success' :
+                        p.statut === 'ABSENT' ? 'badge-cpg-danger' :
+                        p.statut === 'RETARD' ? 'badge-cpg-warning' :
+                        'badge-cpg-neutral'
+                      }`}>
+                        {p.statut === 'PRESENT' ? 'Présent' :
+                         p.statut === 'ABSENT' ? 'Absent' :
+                         p.statut === 'RETARD' ? 'Retard' :
+                         'Non pointé'}
                       </span>
                     </td>
                     <td className="text-end">
                       <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-success me-1">
                         Arrivée
+                      </button>
+                      <button onClick={() => marquerRetard(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-warning me-1">
+                        Retard
                       </button>
                       <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent} className="btn btn-sm btn-outline-primary me-1">
                         Départ
