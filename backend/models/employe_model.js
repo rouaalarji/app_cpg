@@ -22,12 +22,16 @@ async function getByServiceId(serviceId) {
 
 async function getByServiceIdAvecPresence(serviceId, date) {
   const [rows] = await db.query(`
-    SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart
+    SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart,
+           dc.id AS conge_id, dc.date_debut AS conge_debut, dc.date_fin AS conge_fin
     FROM employe e
     LEFT JOIN presence p ON p.employe_id = e.id AND p.date = ?
+    LEFT JOIN demande_conge dc ON dc.employe_id = e.id 
+        AND dc.statut = 'VALIDE_RH' 
+        AND ? BETWEEN dc.date_debut AND dc.date_fin
     WHERE e.service_id = ?
     ORDER BY e.nom
-  `, [date, serviceId]);
+  `, [date, date, serviceId]);
   return rows;
 }
 

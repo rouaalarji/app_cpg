@@ -43,7 +43,8 @@ function PresenceEquipe() {
         snapshot[emp.id] = {
           heureArrivee: emp.heure_arrivee || null,
           heureDepart: emp.heure_depart || null,
-          statut: emp.statut_presence || null,
+          statut: emp.conge_id ? 'EN_CONGE' : (emp.statut_presence || null),
+          enConge: !!emp.conge_id,
           modifie: false,
         };
       });
@@ -230,31 +231,40 @@ function PresenceEquipe() {
                     <td>{p.heureArrivee || '—'}</td>
                     <td>{p.heureDepart || '—'}</td>
                     <td>
-                      <span className={`badge ${
-                        p.statut === 'PRESENT' ? 'badge-cpg-success' :
+                      <span className={`badge ${p.statut === 'PRESENT' ? 'badge-cpg-success' :
                         p.statut === 'ABSENT' ? 'badge-cpg-danger' :
-                        p.statut === 'RETARD' ? 'badge-cpg-warning' :
-                        'badge-cpg-neutral'
-                      }`}>
+                          p.statut === 'RETARD' ? 'badge-cpg-warning' :
+                            p.statut === 'EN_CONGE' ? 'badge-cpg-neutral' :
+                              'badge-cpg-neutral'
+                        }`} style={p.statut === 'EN_CONGE' ? { background: '#e0e7ff', color: '#4338ca' } : {}}>
                         {p.statut === 'PRESENT' ? 'Présent' :
-                         p.statut === 'ABSENT' ? 'Absent' :
-                         p.statut === 'RETARD' ? 'Retard' :
-                         'Non pointé'}
+                          p.statut === 'ABSENT' ? 'Absent' :
+                            p.statut === 'RETARD' ? 'Retard' :
+                              p.statut === 'EN_CONGE' ? 'En congé' :
+                                'Non pointé'}
                       </span>
                     </td>
                     <td className="text-end">
-                      <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-success me-1">
-                        Arrivée
-                      </button>
-                      <button onClick={() => marquerRetard(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-warning me-1">
-                        Retard
-                      </button>
-                      <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent} className="btn btn-sm btn-outline-primary me-1">
-                        Départ
-                      </button>
-                      <button onClick={() => marquerAbsent(emp.id)} disabled={estAbsent} className="btn btn-sm btn-outline-danger">
-                        Absent
-                      </button>
+                      {p.enConge ? (
+                        <span className="text-muted small fst-italic">
+                          <i className="bi bi-airplane me-1"></i>Congé en cours
+                        </span>
+                      ) : (
+                        <>
+                          <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-success me-1">
+                            Arrivée
+                          </button>
+                          <button onClick={() => marquerRetard(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-warning me-1">
+                            Retard
+                          </button>
+                          <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent} className="btn btn-sm btn-outline-primary me-1">
+                            Départ
+                          </button>
+                          <button onClick={() => marquerAbsent(emp.id)} disabled={estAbsent} className="btn btn-sm btn-outline-danger">
+                            Absent
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 );
