@@ -15,5 +15,5 @@ router.get('/historique-mensuel', absenceController.getHistoriqueMensuel);
 router.get('/mois/:mois', absenceController.getByMois);
 router.post('/', upload.single('justificatif'), absenceController.create);
 router.put('/:id', autoriserRoles('RH', 'CHEF', 'ADMIN'), absenceController.update);
-
+router.put('/:id/declarer', upload.single('justificatif'), absenceController.declarerSurExistante);
 module.exports = router;

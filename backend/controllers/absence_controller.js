@@ -31,8 +31,9 @@ async function create(req, res) {
     if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
+    const employeId = rows[0].id;
 
-    const { dateDebut, dateFin, motif, justificatif } = req.body;
+    const { dateDebut, dateFin, motif } = req.body;
     if (!dateDebut || !dateFin) {
       return res.status(400).json({ message: 'Champs obligatoires manquants (dateDebut, dateFin)' });
     }
@@ -40,14 +41,31 @@ async function create(req, res) {
       return res.status(400).json({ message: 'La date de fin doit être après la date de début' });
     }
 
+    const justificatif = req.file ? `/uploads/justificatifs/${req.file.filename}` : null;
+
+    // Si une absence existe déjà pour cet employé à cette date (créée par le pointage du chef),
+    // on la complète avec la déclaration de l'employé au lieu de dupliquer
+    const absenceExistante = await absenceModel.getByEmployeAndDate(employeId, dateDebut);
+
+    if (absenceExistante) {
+      await absenceModel.update(absenceExistante.id, {
+        motif: motif || absenceExistante.motif,
+        justificatif: justificatif || absenceExistante.justificatif,
+        statut: justificatif ? 'JUSTIFIEE' : absenceExistante.statut,
+      });
+      await absenceModel.marquerDeclaree(absenceExistante.id);
+      return res.status(200).json({ message: 'Déclaration ajoutée à votre absence', id: absenceExistante.id });
+    }
+
     const id = await absenceModel.create({
-      employeId: rows[0].id,
+      employeId,
       dateDebut,
       dateFin,
       motif,
       justificatif,
       statut: justificatif ? 'JUSTIFIEE' : 'NON_JUSTIFIEE',
     });
+    await absenceModel.marquerDeclaree(id);
 
     res.status(201).json({ message: 'Absence déclarée', id });
   } catch (err) {
@@ -122,4 +140,36 @@ async function getByMois(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats, getMesStats, getHistoriqueMensuel, getByMois };
+async function declarerSurExistante(req, res) {
+  try {
+    const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Profil employé introuvable' });
+    }
+    const employeId = rows[0].id;
+
+    const absence = await absenceModel.getById(req.params.id);
+    if (!absence) {
+      return res.status(404).json({ message: 'Absence non trouvée' });
+    }
+    if (absence.employe_id !== employeId) {
+      return res.status(403).json({ message: "Cette absence ne vous appartient pas" });
+    }
+
+    const { motif } = req.body;
+    const justificatif = req.file ? `/uploads/justificatifs/${req.file.filename}` : absence.justificatif;
+
+    await absenceModel.update(req.params.id, {
+      motif: motif || absence.motif,
+      justificatif,
+      statut: justificatif ? 'JUSTIFIEE' : absence.statut,
+    });
+    await absenceModel.marquerDeclaree(req.params.id);
+
+    res.json({ message: 'Déclaration enregistrée' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesAbsences, create, update, getAllAdmin, getStats, getMesStats, getHistoriqueMensuel, getByMois, declarerSurExistante };

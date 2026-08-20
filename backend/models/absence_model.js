@@ -120,4 +120,7 @@ async function getByMois(mois) {
   `, [mois]);
   return rows;
 }
-module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate, getHistoriqueMensuel, getByMois };
+async function marquerDeclaree(id) {
+  await db.query('UPDATE absence SET declaree_par_employe = TRUE WHERE id = ?', [id]);
+}
+module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate, getHistoriqueMensuel, getByMois, marquerDeclaree };

@@ -33,5 +33,10 @@ async function getByMois(mois) {
   const res = await api.get(`/absences/mois/${mois}`);
   return res.data;
 }
-
-export { getMesAbsences, create, getAllAdmin, getStats, update, getHistoriqueMensuel, getByMois };
+async function declarerSurExistante(id, donnees) {
+  const response = await api.put(`/absences/${id}/declarer`, donnees, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+}
+export { getMesAbsences, create, getAllAdmin, getStats, update, getHistoriqueMensuel, getByMois, declarerSurExistante };

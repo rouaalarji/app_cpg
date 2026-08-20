@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllAdmin, getStats, update, getHistoriqueMensuel, getByMois } from '../../services/absenceService';
+import DetailAbsence from '../../pages/admin/DetailAbsence';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -140,6 +141,7 @@ function Absences() {
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [modaleOuverte, setModaleOuverte] = useState(false);
+  const [absenceSelectionnee, setAbsenceSelectionnee] = useState(null);
 
   async function charger() {
     try {
@@ -155,14 +157,16 @@ function Absences() {
     charger();
   }, []);
 
-  async function handleRequalifier(id, statutActuel) {
-    const nouveauStatut = statutActuel === 'JUSTIFIEE' ? 'NON_JUSTIFIEE' : 'JUSTIFIEE';
-    try {
-      await update(id, { statut: nouveauStatut });
-      charger();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Erreur');
-    }
+  async function handleJustifier(id) {
+    await update(id, { statut: 'JUSTIFIEE' });
+    setAbsenceSelectionnee(null);
+    charger();
+  }
+
+  async function handleNonJustifier(id) {
+    await update(id, { statut: 'NON_JUSTIFIEE' });
+    setAbsenceSelectionnee(null);
+    charger();
   }
 
   const filtres = absences.filter((a) =>
@@ -254,26 +258,28 @@ function Absences() {
                 <th>Service</th>
                 <th>Dates</th>
                 <th>Motif</th>
+                <th>Déclaration</th>
                 <th>Statut</th>
-                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtres.map((a) => (
-                <tr key={a.id}>
+                <tr key={a.id} onClick={() => setAbsenceSelectionnee(a)} style={{ cursor: 'pointer' }}>
                   <td className="fw-semibold">{a.employe_prenom} {a.employe_nom}</td>
                   <td>{a.service_nom}</td>
                   <td>{a.date_debut} → {a.date_fin}</td>
                   <td>{a.motif || '—'}</td>
                   <td>
+                    {a.declaree_par_employe ? (
+                      <span className="badge badge-cpg-success"><i className="bi bi-check-circle me-1"></i>Déclarée</span>
+                    ) : (
+                      <span className="badge badge-cpg-neutral">Aucune</span>
+                    )}
+                  </td>
+                  <td>
                     <span className={`badge ${a.statut === 'JUSTIFIEE' ? 'badge-cpg-success' : 'badge-cpg-danger'}`}>
                       {a.statut === 'JUSTIFIEE' ? 'Justifiée' : 'Non justifiée'}
                     </span>
-                  </td>
-                  <td className="text-end">
-                    <button onClick={() => handleRequalifier(a.id, a.statut)} className="btn btn-sm btn-outline-secondary">
-                      Marquer {a.statut === 'JUSTIFIEE' ? 'non justifiée' : 'justifiée'}
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -283,6 +289,15 @@ function Absences() {
       </div>
 
       {modaleOuverte && <ModaleHistorique onFermer={() => setModaleOuverte(false)} />}
+
+      {absenceSelectionnee && (
+        <DetailAbsence
+          absence={absenceSelectionnee}
+          onFermer={() => setAbsenceSelectionnee(null)}
+          onJustifier={handleJustifier}
+          onNonJustifier={handleNonJustifier}
+        />
+      )}
     </LayoutAdmin>
   );
 }
