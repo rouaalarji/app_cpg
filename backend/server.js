@@ -12,6 +12,8 @@ const departementRoutes = require('./routes/departement_routes');
 const dashboardRoutes = require('./routes/dashboard_routes');
 const utilisateurRoutes = require('./routes/utilisateur_routes');
 const notificationRoutes = require('./routes/notification_routes');
+const jourFerieRoutes = require('./routes/jour_ferie_routes');
+
 const app = express();
 
 app.use(cors());
@@ -21,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/employes',employeRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/types-conge', typeCongeRoutes);
+app.use('/api/jours-feries', jourFerieRoutes);
 app.use('/api/demandes-conge', demandeCongeRoutes);
 app.use('/api/presences', presenceRoutes);
 app.use('/api/absences', absenceRoutes);

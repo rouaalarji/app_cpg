@@ -33,6 +33,7 @@ import GestionComptes from './pages/admin/GestionComptes';
 import TypesConge from './pages/admin/TypesConge';
 import Departements from './pages/admin/Departements';
 import Absences from './pages/admin/Absences';
+import CalendrierFeries from './pages/admin/CalendrierFeries';
 const TOUS_ROLES = ['EMPLOYE', 'CHEF', 'RH', 'ADMIN'];
 
 function App() {
@@ -72,7 +73,7 @@ function App() {
           <Route path="/admin/types-conge" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><TypesConge /></RoleRoute>} />
           <Route path="/admin/departements" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Departements /></RoleRoute>} />
           <Route path="/admin/absences" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Absences /></RoleRoute>} />
-
+          <Route path="/admin/calendrier-feries" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><CalendrierFeries /></RoleRoute>} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

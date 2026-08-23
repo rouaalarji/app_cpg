@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { getMesAbsences, declarerSurExistante } from '../../services/absenceService';
 import Modal from '../../components/Modal';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
