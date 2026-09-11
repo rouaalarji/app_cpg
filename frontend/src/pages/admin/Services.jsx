@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import Modal from '../../components/Modal';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
+
 const NOUVEAU = '__nouveau__';
 
 function Services() {
+
   const [services, setServices] = useState([]);
   const [departements, setDepartements] = useState([]);
   const [chefs, setChefs] = useState([]);
@@ -15,6 +17,7 @@ function Services() {
   const [messageSucces, setMessageSucces] = useState('');
   const [erreurForm, setErreurForm] = useState('');
   const [afficherForm, setAfficherForm] = useState(false);
+  const [idEnEdition, setIdEnEdition] = useState(null);
 
   const [formData, setFormData] = useState({
     code: '', nom: '', departementId: '', nouveauDepartementNom: '', chefId: '',
@@ -40,7 +43,21 @@ function Services() {
   }, []);
 
   function ouvrirAjout() {
+    setIdEnEdition(null);
     setFormData({ code: '', nom: '', departementId: '', nouveauDepartementNom: '', chefId: '' });
+    setErreurForm('');
+    setAfficherForm(true);
+  }
+
+  function ouvrirEdition(s) {
+    setIdEnEdition(s.id);
+    setFormData({
+      code: s.code,
+      nom: s.nom,
+      departementId: s.departement_id,
+      nouveauDepartementNom: '',
+      chefId: s.chef_id || '',
+    });
     setErreurForm('');
     setAfficherForm(true);
   }
@@ -64,18 +81,38 @@ function Services() {
         departementId = resDep.data.id;
       }
 
-      await api.post('/services', {
+      const payload = {
         code: formData.code,
         nom: formData.nom,
         departementId,
         chefId: formData.chefId || null,
-      });
-      setMessageSucces('Service créé avec succès.');
+      };
+
+      if (idEnEdition) {
+        await api.put(`/services/${idEnEdition}`, payload);
+        setMessageSucces('Service modifié avec succès.');
+      } else {
+        await api.post('/services', payload);
+        setMessageSucces('Service créé avec succès.');
+      }
+
       setAfficherForm(false);
       await charger();
       setTimeout(() => setMessageSucces(''), 4000);
     } catch (err) {
-      setErreurForm(err.response?.data?.message || 'Erreur lors de la création');
+      setErreurForm(err.response?.data?.message || 'Erreur lors de l\'enregistrement');
+    }
+  }
+
+  async function handleSupprimer(id, nom) {
+    if (!window.confirm(`Supprimer le service "${nom}" ?`)) return;
+    try {
+      await api.delete(`/services/${id}`);
+      setMessageSucces('Service supprimé.');
+      await charger();
+      setTimeout(() => setMessageSucces(''), 4000);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Impossible de supprimer (des employés y sont peut-être rattachés)');
     }
   }
 
@@ -94,9 +131,9 @@ function Services() {
           <Link to="/admin/departements" className="btn btn-outline-secondary d-flex align-items-center gap-1">
             <i className="bi bi-diagram-3"></i> Gérer les départements
           </Link>
-          <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
-            <i className="bi bi-plus-lg"></i> Ajouter un service
-          </button>
+            <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
+              <i className="bi bi-plus-lg"></i> Ajouter un service
+            </button>
         </div>
       </div>
 
@@ -107,7 +144,7 @@ function Services() {
       )}
 
       {afficherForm && (
-        <Modal titre="Nouveau service" onFermer={() => setAfficherForm(false)}>
+        <Modal titre={idEnEdition ? 'Modifier le service' : 'Nouveau service'} onFermer={() => setAfficherForm(false)}>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label small fw-semibold">Code</label>
@@ -124,7 +161,7 @@ function Services() {
                 {departements.map((d) => (
                   <option key={d.id} value={d.id}>{d.nom}</option>
                 ))}
-                <option value={NOUVEAU}>+ Nouveau département</option>
+                {!idEnEdition && <option value={NOUVEAU}>+ Nouveau département</option>}
               </select>
             </div>
             {formData.departementId === NOUVEAU && (
@@ -151,7 +188,7 @@ function Services() {
             </div>
             {erreurForm && <div className="alert alert-danger py-2 small">{erreurForm}</div>}
             <div className="d-flex gap-2">
-              <button type="submit" className="btn btn-cpg-primary">Créer</button>
+              <button type="submit" className="btn btn-cpg-primary">{idEnEdition ? 'Enregistrer' : 'Créer'}</button>
               <button type="button" onClick={() => setAfficherForm(false)} className="btn btn-outline-secondary">Annuler</button>
             </div>
           </form>
@@ -188,6 +225,7 @@ function Services() {
                 <th>Lieu</th>
                 <th>Chef</th>
                 <th>Effectif</th>
+                 <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -199,6 +237,10 @@ function Services() {
                   <td className="text-muted">{s.departement_lieu || '—'}</td>
                   <td>{s.chef_nom || <span className="text-muted">Non défini</span>}</td>
                   <td><span className="badge badge-cpg-success">{s.nb_employes} employé{s.nb_employes > 1 ? 's' : ''}</span></td>
+                    <td className="text-end">
+                      <button onClick={() => ouvrirEdition(s)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
+                      <button onClick={() => handleSupprimer(s.id, s.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
+                    </td>
                 </tr>
               ))}
             </tbody>

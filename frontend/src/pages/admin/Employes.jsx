@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAll, remove } from '../../services/employeService';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
+import { useAuth } from '../../context/AuthContext';
 
 const COULEURS_AVATAR = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
 
@@ -20,6 +21,8 @@ function Employes() {
   const [erreur, setErreur] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
   const [recherche, setRecherche] = useState('');
+  const { utilisateur } = useAuth();
+  const estAdmin = utilisateur?.role === 'ADMIN';
 
   async function charger() {
     try {
@@ -59,9 +62,12 @@ function Employes() {
           <h2 className="fw-bold mb-1">Employés</h2>
           <p className="text-muted mb-0">{employes.length} employé{employes.length > 1 ? 's' : ''} au total</p>
         </div>
-        <Link to="/admin/employes/ajouter" className="btn btn-cpg-primary d-flex align-items-center gap-1">
-          <i className="bi bi-plus-lg"></i> Ajouter un employé
-        </Link>
+
+        {estAdmin && (
+          <Link to="/admin/employes/ajouter" className="btn btn-cpg-primary d-flex align-items-center gap-1">
+            <i className="bi bi-plus-lg"></i> Ajouter un employé
+          </Link>
+        )}
       </div>
 
       {messageSucces && (
@@ -106,8 +112,7 @@ function Employes() {
                   <th>Matricule</th>
                   <th>Service</th>
                   <th>Statut</th>
-                  <th className="text-end">Actions</th>
-                </tr>
+                  {estAdmin && <th className="text-end">Actions</th>}                </tr>
               </thead>
               <tbody>
                 {employesFiltres.map((emp) => (
@@ -132,6 +137,8 @@ function Employes() {
                         {emp.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
+                    {estAdmin && (
+
                     <td className="text-end">
                       <Link to={`/admin/employes/modifier/${emp.id}`} className="btn btn-sm btn-light me-1" title="Modifier">
                         <i className="bi bi-pencil"></i>
@@ -144,6 +151,7 @@ function Employes() {
                         <i className="bi bi-trash"></i>
                       </button>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

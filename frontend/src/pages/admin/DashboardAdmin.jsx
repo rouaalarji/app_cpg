@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { getStats } from '../../services/dashboardService';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
-
+import BandeauJourFerie from '../../components/BandeauJourFerie';
 function DashboardAdmin() {
   const { utilisateur } = useAuth();
   const [stats, setStats] = useState(null);
@@ -92,7 +92,7 @@ function DashboardAdmin() {
         <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.02em' }}>
           Tableau de bord {utilisateur?.role === 'RH' ? 'RH' : 'Administrateur'}
         </h2>
-        <p className="text-muted mb-0">{utilisateur?.email}</p>
+        <BandeauJourFerie />
       </div>
 
       {chargement && (

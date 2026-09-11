@@ -15,11 +15,12 @@ function SidebarAdmin({ ouvert, setOuvert }) {
     { to: '/admin/services', label: 'Départements / Services', icone: 'bi-diagram-3' },
     { to: '/admin/types-conge', label: 'Types de congés', icone: 'bi-list-check' }, 
     { to: '/admin/absences', label: 'Absences', icone: 'bi-calendar-x' },
-    { to: '/admin/calendrier-feries', label: 'Calendrier fériés', icone: 'bi-calendar-event' },
   ];
 
   const liensAdmin = [
     { to: '/admin/comptes', label: 'Gestion des comptes', icone: 'bi-shield-lock' },
+    { to: '/admin/calendrier-feries', label: 'Calendrier fériés', icone: 'bi-calendar-event' },
+
   ];
 
   const liens = role === 'ADMIN' ? [...liensCommuns, ...liensAdmin] : liensCommuns;

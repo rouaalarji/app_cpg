@@ -4,7 +4,7 @@ import { marquerPresence } from '../../services/presenceService';
 import { getStatsChef } from '../../services/dashboardService';
 import api from '../../services/api';
 import LayoutChef from '../../components/layout/LayoutChef';
-
+import { verifierDate } from '../../services/jourFerieService';
 function aujourdHuiStr() {
   return new Date().toISOString().split('T')[0];
 }
@@ -24,19 +24,21 @@ function PresenceEquipe() {
   const [enregistrement, setEnregistrement] = useState(false);
   const [erreur, setErreur] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
-
+  const [jourFerieInfo, setJourFerieInfo] = useState(null);
   const charger = useCallback(async () => {
     setChargement(true);
     setErreur('');
     try {
-      const [infoRes, membres, statsData] = await Promise.all([
+      const [infoRes, membres, statsData, ferieData] = await Promise.all([
         api.get('/services/mon-service'),
         getMonEquipe(dateSelectionnee),
         getStatsChef(),
+        verifierDate(dateSelectionnee),
       ]);
       setServiceInfo(infoRes.data);
       setEquipe(membres);
       setStats(statsData);
+      setJourFerieInfo(ferieData);
 
       const snapshot = {};
       membres.forEach((emp) => {
@@ -182,7 +184,15 @@ function PresenceEquipe() {
         </div>
       )}
       {erreur && <div className="alert alert-danger">{erreur}</div>}
-
+      {jourFerieInfo?.estFerie && (
+        <div className="alert alert-danger d-flex align-items-center gap-2 mb-3">
+          <i className="bi bi-calendar-x fs-5"></i>
+          <span className="fw-semibold">
+            Ce jour est marqué comme {jourFerieInfo.details.type === 'FERIE' ? 'férié' : jourFerieInfo.details.type === 'GREVE' ? 'jour de grève' : 'jour non travaillé'}
+            {jourFerieInfo.details.description ? ` — ${jourFerieInfo.details.description}` : ''}. Le pointage n'est pas nécessaire.
+          </span>
+        </div>
+      )}
       {/* Barre d'actions */}
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <span className="text-muted small">
@@ -198,8 +208,7 @@ function PresenceEquipe() {
           <button onClick={handleReinitialiser} className="btn btn-outline-secondary btn-sm">
             <i className="bi bi-arrow-counterclockwise me-1"></i> Réinitialiser
           </button>
-          <button onClick={handleEnregistrer} disabled={nbModifies === 0 || enregistrement} className="btn btn-cpg-primary btn-sm">
-            <i className="bi bi-save me-1"></i> {enregistrement ? 'Enregistrement...' : 'Enregistrer le pointage'}
+          <button onClick={handleEnregistrer} disabled={nbModifies === 0 || enregistrement || jourFerieInfo?.estFerie} className="btn btn-cpg-primary btn-sm">            <i className="bi bi-save me-1"></i> {enregistrement ? 'Enregistrement...' : 'Enregistrer le pointage'}
           </button>
         </div>
       </div>
@@ -251,16 +260,16 @@ function PresenceEquipe() {
                         </span>
                       ) : (
                         <>
-                          <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-success me-1">
+                          <button onClick={() => marquerArrivee(emp.id)} disabled={aArrivee || estAbsent || jourFerieInfo?.estFerie} className="btn btn-sm btn-outline-success me-1">
                             Arrivée
                           </button>
-                          <button onClick={() => marquerRetard(emp.id)} disabled={aArrivee || estAbsent} className="btn btn-sm btn-outline-warning me-1">
+                          <button onClick={() => marquerRetard(emp.id)} disabled={aArrivee || estAbsent || jourFerieInfo?.estFerie} className="btn btn-sm btn-outline-warning me-1">
                             Retard
                           </button>
-                          <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent} className="btn btn-sm btn-outline-primary me-1">
+                          <button onClick={() => marquerDepart(emp.id)} disabled={!aArrivee || !!p.heureDepart || estAbsent || jourFerieInfo?.estFerie} className="btn btn-sm btn-outline-primary me-1">
                             Départ
                           </button>
-                          <button onClick={() => marquerAbsent(emp.id)} disabled={estAbsent} className="btn btn-sm btn-outline-danger">
+                          <button onClick={() => marquerAbsent(emp.id)} disabled={estAbsent || jourFerieInfo?.estFerie} className="btn btn-sm btn-outline-danger">
                             Absent
                           </button>
                         </>

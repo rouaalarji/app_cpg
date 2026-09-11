@@ -5,7 +5,7 @@ import { getMesPresences } from '../../services/presenceService';
 import { getResumePersonnel } from '../../services/demandeCongeService';
 import { getMesAbsences } from '../../services/absenceService';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
-
+import BandeauJourFerie from '../../components/BandeauJourFerie';
 function aujourdHuiStr() {
   return new Date().toISOString().split('T')[0];
 }
@@ -58,8 +58,9 @@ function DashboardEmploye() {
           Bienvenue{prenom ? `, ${prenom}` : ''} 
         </h2>
         <p className="text-muted mb-0 text-capitalize">{formatDateAffichage(aujourdHuiStr())}</p>
+        <BandeauJourFerie />
       </div>
-
+       
       {chargement && (
         <div className="d-flex justify-content-center align-items-center" style={{ height: '160px' }}>
           <div className="spinner-border" style={{ color: 'var(--cpg-primary)' }} role="status"></div>

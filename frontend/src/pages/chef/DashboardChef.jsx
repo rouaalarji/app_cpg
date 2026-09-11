@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getStatsChef, getDemandesConge } from '../../services/dashboardService';
 import { getMonEquipe } from '../../services/employeService';
 import LayoutChef from '../../components/layout/LayoutChef';
-
+import BandeauJourFerie from '../../components/BandeauJourFerie';
 function badgeStatutPresence(statut) {
   const map = {
     PRESENT: { label: 'Présent', couleur: '#22c55e' },
@@ -45,8 +45,7 @@ function DashboardChef() {
   return (
     <LayoutChef>
       <h2 className="fw-bold mb-1">Tableau de bord Chef</h2>
-      <p className="text-muted mb-4">Connecté en tant que : {utilisateur?.email}</p>
-
+<BandeauJourFerie />
       {chargement && <p>Chargement...</p>}
       {erreur && <div className="alert alert-danger">{erreur}</div>}
 

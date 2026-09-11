@@ -73,7 +73,7 @@ function App() {
           <Route path="/admin/types-conge" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><TypesConge /></RoleRoute>} />
           <Route path="/admin/departements" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Departements /></RoleRoute>} />
           <Route path="/admin/absences" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Absences /></RoleRoute>} />
-          <Route path="/admin/calendrier-feries" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><CalendrierFeries /></RoleRoute>} />
+          <Route path="/admin/calendrier-feries" element={<RoleRoute rolesAutorises={['ADMIN']}><CalendrierFeries /></RoleRoute>} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
