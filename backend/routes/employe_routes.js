@@ -10,8 +10,8 @@ router.get('/mon-equipe', autoriserRoles('CHEF'), employeController.getMonEquipe
 router.get('/mon-profil', employeController.getMonProfil);
 router.get('/', autoriserRoles('RH', 'ADMIN'), employeController.getAll);
 router.get('/:id', employeController.getById);
-router.post('/', autoriserRoles('RH'), employeController.create);
-router.put('/:id', autoriserRoles('RH'), employeController.update);
-router.delete('/:id', autoriserRoles('RH'), employeController.remove);
+router.post('/', autoriserRoles('ADMIN'), employeController.create);
+router.put('/:id', autoriserRoles('ADMIN'), employeController.update);
+router.delete('/:id', autoriserRoles('ADMIN'), employeController.remove);
 
 module.exports = router;

@@ -2,9 +2,10 @@ const db = require('../config/database');
 
 async function getAll() {
   const [rows] = await db.query(`
-    SELECT e.*, s.nom AS service_nom
+    SELECT e.*, s.nom AS service_nom, u.email, u.role
     FROM employe e
     LEFT JOIN service s ON e.service_id = s.id
+    LEFT JOIN utilisateur u ON e.utilisateur_id = u.id
     ORDER BY e.nom
   `);
   return rows;
@@ -20,18 +21,27 @@ async function getByServiceId(serviceId) {
   return rows;
 }
 
-async function getByServiceIdAvecPresence(serviceId, date) {
-  const [rows] = await db.query(`
+async function getByServiceIdAvecPresence(serviceId, date, excludeEmployeId = null) {
+  let query = `
     SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart,
-           dc.id AS conge_id, dc.date_debut AS conge_debut, dc.date_fin AS conge_fin
+           dc.id AS conge_id
     FROM employe e
     LEFT JOIN presence p ON p.employe_id = e.id AND p.date = ?
     LEFT JOIN demande_conge dc ON dc.employe_id = e.id 
-        AND dc.statut = 'VALIDE_RH' 
-        AND ? BETWEEN dc.date_debut AND dc.date_fin
+      AND dc.statut IN ('EN_ATTENTE', 'VALIDE_CHEF', 'VALIDE_RH')
+      AND ? BETWEEN dc.date_debut AND dc.date_fin
     WHERE e.service_id = ?
-    ORDER BY e.nom
-  `, [date, date, serviceId]);
+  `;
+  const params = [date, date, serviceId];
+
+  if (excludeEmployeId) {
+    query += ' AND e.id != ?';
+    params.push(excludeEmployeId);
+  }
+
+  query += ' ORDER BY e.nom';
+
+  const [rows] = await db.query(query, params);
   return rows;
 }
 

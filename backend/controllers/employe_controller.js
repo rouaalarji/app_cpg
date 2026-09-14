@@ -64,6 +64,11 @@ async function create(req, res) {
       serviceId,
     });
 
+    // Si l'employé créé est un chef, on le déclare responsable de son service
+    if (role === 'CHEF') {
+      await serviceModel.assignerChef(serviceId, employeId);
+    }
+
     res.status(201).json({ message: 'Employé et compte créés', employeId, utilisateurId, matricule });
   } catch (err) {
     console.error(err);
@@ -77,7 +82,23 @@ async function update(req, res) {
     if (!employe) {
       return res.status(404).json({ message: 'Employé non trouvé' });
     }
+
     await employeModel.update(req.params.id, req.body);
+
+    // Le rôle vit dans `utilisateur`, pas dans `employe`
+    const utilisateur = await utilisateurModel.getById(employe.utilisateur_id);
+    const { serviceId } = req.body;
+
+    if (utilisateur?.role === 'CHEF' && serviceId) {
+      // Retire d'abord l'ancien poste de chef (s'il en avait un ailleurs)
+      await serviceModel.retirerChef(req.params.id);
+      // Puis l'assigne comme chef de son nouveau/même service
+      await serviceModel.assignerChef(serviceId, req.params.id);
+    } else if (utilisateur?.role !== 'CHEF') {
+      // S'il n'est pas (ou plus) chef, on s'assure qu'il n'apparaît responsable d'aucun service
+      await serviceModel.retirerChef(req.params.id);
+    }
+
     res.json({ message: 'Employé mis à jour' });
   } catch (err) {
     console.error(err);
@@ -113,14 +134,13 @@ async function getMonEquipe(req, res) {
     }
 
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date);
+    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date, monEmployeId); // 👈 exclut le chef
     res.json(equipe);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-
 async function getChefs(req, res) {
   try {
     const chefs = await employeModel.getEmployesAvecRoleChef();

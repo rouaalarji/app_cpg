@@ -67,4 +67,17 @@ async function remove(id) {
   await db.query('DELETE FROM service WHERE id = ?', [id]);
 }
 
-module.exports = { getAll, getById, getByDepartementId, create, update, remove, getAllDetaille, getDetailParResponsable, getServiceParResponsable };
+async function assignerChef(serviceId, employeId) {
+  await db.query('UPDATE service SET chef_id = ? WHERE id = ?', [employeId, serviceId]);
+}
+
+async function retirerChef(employeId) {
+  // Utile si un employé change de rôle ou de service : on le retire de son ancien poste de chef
+  await db.query('UPDATE service SET chef_id = NULL WHERE chef_id = ?', [employeId]);
+}
+
+module.exports = {
+  getAll, getById, getByDepartementId, create, update, remove,
+  getAllDetaille, getDetailParResponsable, getServiceParResponsable,
+  assignerChef, retirerChef,
+};

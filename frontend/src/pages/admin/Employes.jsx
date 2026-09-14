@@ -6,6 +6,20 @@ import { useAuth } from '../../context/AuthContext';
 
 const COULEURS_AVATAR = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
 
+const LABELS_ROLE = {
+  EMPLOYE: 'Employé',
+  CHEF: 'Chef de service',
+  RH: 'Ressources Humaines',
+  ADMIN: 'Administrateur',
+};
+
+const COULEURS_ROLE = {
+  EMPLOYE: 'badge-cpg-neutral',
+  CHEF: 'badge-cpg-primary',
+  RH: 'badge-cpg-warning',
+  ADMIN: 'badge-cpg-danger',
+};
+
 function couleurAvatar(nom) {
   const index = nom.charCodeAt(0) % COULEURS_AVATAR.length;
   return COULEURS_AVATAR[index];
@@ -52,7 +66,7 @@ function Employes() {
   }
 
   const employesFiltres = employes.filter((emp) =>
-    `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.service_nom}`.toLowerCase().includes(recherche.toLowerCase())
+    `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.service_nom} ${emp.email} ${emp.role}`.toLowerCase().includes(recherche.toLowerCase())
   );
 
   return (
@@ -109,10 +123,13 @@ function Employes() {
               <thead>
                 <tr>
                   <th>Employé</th>
+                  <th>Email</th>
                   <th>Matricule</th>
                   <th>Service</th>
+                  <th>Rôle</th>
                   <th>Statut</th>
-                  {estAdmin && <th className="text-end">Actions</th>}                </tr>
+                  {estAdmin && <th className="text-end">Actions</th>}
+                </tr>
               </thead>
               <tbody>
                 {employesFiltres.map((emp) => (
@@ -130,27 +147,32 @@ function Employes() {
                         </div>
                       </div>
                     </td>
+                    <td className="text-muted">{emp.email || '—'}</td>
                     <td className="text-muted">{emp.matricule}</td>
                     <td>{emp.service_nom || '—'}</td>
+                    <td>
+                      <span className={`badge ${COULEURS_ROLE[emp.role] || 'badge-cpg-neutral'}`}>
+                        {LABELS_ROLE[emp.role] || emp.role}
+                      </span>
+                    </td>
                     <td>
                       <span className={`badge ${emp.statut === 'ACTIF' ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
                         {emp.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
                     {estAdmin && (
-
-                    <td className="text-end">
-                      <Link to={`/admin/employes/modifier/${emp.id}`} className="btn btn-sm btn-light me-1" title="Modifier">
-                        <i className="bi bi-pencil"></i>
-                      </Link>
-                      <button
-                        onClick={() => handleSupprimer(emp.id, `${emp.prenom} ${emp.nom}`)}
-                        className="btn btn-sm btn-light text-danger"
-                        title="Supprimer"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </td>
+                      <td className="text-end">
+                        <Link to={`/admin/employes/modifier/${emp.id}`} className="btn btn-sm btn-light me-1" title="Modifier">
+                          <i className="bi bi-pencil"></i>
+                        </Link>
+                        <button
+                          onClick={() => handleSupprimer(emp.id, `${emp.prenom} ${emp.nom}`)}
+                          className="btn btn-sm btn-light text-danger"
+                          title="Supprimer"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </td>
                     )}
                   </tr>
                 ))}
