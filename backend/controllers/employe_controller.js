@@ -43,7 +43,18 @@ async function create(req, res) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
 
-    // Génération automatique du matricule (numérique, 4 chiffres)
+    if (role === 'CHEF') {
+      const serviceCible = await serviceModel.getById(serviceId);
+      if (!serviceCible) {
+        return res.status(404).json({ message: 'Service introuvable' });
+      }
+      if (serviceCible.chef_id) {
+        return res.status(409).json({
+          message: 'Ce service a déjà un chef assigné. Retirez-le d\'abord avant d\'en affecter un nouveau.'
+        });
+      }
+    }
+
     const dernierMatricule = await employeModel.getDernierMatricule();
     const matricule = employeModel.genererProchainMatricule(dernierMatricule);
 
@@ -64,7 +75,6 @@ async function create(req, res) {
       serviceId,
     });
 
-    // Si l'employé créé est un chef, on le déclare responsable de son service
     if (role === 'CHEF') {
       await serviceModel.assignerChef(serviceId, employeId);
     }
@@ -83,19 +93,36 @@ async function update(req, res) {
       return res.status(404).json({ message: 'Employé non trouvé' });
     }
 
+    const { nom, prenom, dateNaissance, serviceId, statut, role } = req.body;
+    const ancienRole = employe.role; // récupéré grâce au JOIN dans getById
+
+    // Si on assigne (ou garde) le rôle CHEF, vérifie que le service ciblé est libre
+    if (role === 'CHEF' && serviceId) {
+      const serviceCible = await serviceModel.getById(serviceId);
+      if (!serviceCible) {
+        return res.status(404).json({ message: 'Service introuvable' });
+      }
+      if (serviceCible.chef_id && serviceCible.chef_id !== parseInt(req.params.id, 10)) {
+        return res.status(409).json({
+          message: 'Ce service a déjà un chef assigné. Retirez-le d\'abord avant d\'en affecter un nouveau.'
+        });
+      }
+    }
+
+    // Met à jour les champs de la table employe
     await employeModel.update(req.params.id, req.body);
 
-    // Le rôle vit dans `utilisateur`, pas dans `employe`
-    const utilisateur = await utilisateurModel.getById(employe.utilisateur_id);
-    const { serviceId } = req.body;
+    // Met à jour le rôle dans la table utilisateur, si un rôle a été envoyé et qu'il a changé
+    if (role && role !== ancienRole) {
+      await utilisateurModel.updateRole(employe.utilisateur_id, role);
+    }
 
-    if (utilisateur?.role === 'CHEF' && serviceId) {
-      // Retire d'abord l'ancien poste de chef (s'il en avait un ailleurs)
-      await serviceModel.retirerChef(req.params.id);
-      // Puis l'assigne comme chef de son nouveau/même service
+    // Synchronise service.chef_id selon le rôle final
+    const roleFinal = role || ancienRole;
+    if (roleFinal === 'CHEF' && serviceId) {
+      await serviceModel.retirerChef(req.params.id); // retire son ancien poste de chef s'il y en avait un
       await serviceModel.assignerChef(serviceId, req.params.id);
-    } else if (utilisateur?.role !== 'CHEF') {
-      // S'il n'est pas (ou plus) chef, on s'assure qu'il n'apparaît responsable d'aucun service
+    } else if (roleFinal !== 'CHEF') {
       await serviceModel.retirerChef(req.params.id);
     }
 
@@ -134,13 +161,14 @@ async function getMonEquipe(req, res) {
     }
 
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date, monEmployeId); // 👈 exclut le chef
+    const equipe = await employeModel.getByServiceIdAvecPresence(service.id, date, monEmployeId);
     res.json(equipe);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+
 async function getChefs(req, res) {
   try {
     const chefs = await employeModel.getEmployesAvecRoleChef();
@@ -162,6 +190,24 @@ async function getMonProfil(req, res) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
+}async function getByService(req, res) {
+  try {
+    const employes = await employeModel.getByServiceId(req.params.serviceId);
+    res.json(employes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
 }
 
-module.exports = { getAll, getById, create, update, remove, getMonEquipe, getChefs, getMonProfil };
+async function getByDepartement(req, res) {
+  try {
+    const employes = await employeModel.getByDepartementId(req.params.departementId);
+    res.json(employes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
+module.exports = { getAll, getById, create, update, remove, getMonEquipe, getChefs, getMonProfil, getByService, getByDepartement };

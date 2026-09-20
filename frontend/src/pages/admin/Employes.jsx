@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getAll, remove } from '../../services/employeService';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 import { useAuth } from '../../context/AuthContext';
+import AjouterEmployeModal from './AjouterEmploye';
 
 const COULEURS_AVATAR = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
 
@@ -15,7 +16,7 @@ const LABELS_ROLE = {
 
 const COULEURS_ROLE = {
   EMPLOYE: 'badge-cpg-neutral',
-  CHEF: 'badge-cpg-primary',
+  CHEF: 'badge-cpg-neutral',
   RH: 'badge-cpg-warning',
   ADMIN: 'badge-cpg-danger',
 };
@@ -35,6 +36,7 @@ function Employes() {
   const [erreur, setErreur] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
   const [recherche, setRecherche] = useState('');
+  const [modalOuvert, setModalOuvert] = useState(false);
   const { utilisateur } = useAuth();
   const estAdmin = utilisateur?.role === 'ADMIN';
 
@@ -65,6 +67,13 @@ function Employes() {
     }
   }
 
+  function handleAjoute(nomComplet) {
+    setModalOuvert(false);
+    setMessageSucces(`${nomComplet} a été ajouté avec succès.`);
+    charger();
+    setTimeout(() => setMessageSucces(''), 4000);
+  }
+
   const employesFiltres = employes.filter((emp) =>
     `${emp.nom} ${emp.prenom} ${emp.matricule} ${emp.service_nom} ${emp.email} ${emp.role}`.toLowerCase().includes(recherche.toLowerCase())
   );
@@ -78,9 +87,13 @@ function Employes() {
         </div>
 
         {estAdmin && (
-          <Link to="/admin/employes/ajouter" className="btn btn-cpg-primary d-flex align-items-center gap-1">
+          <button
+            type="button"
+            className="btn btn-cpg-primary d-flex align-items-center gap-1"
+            onClick={() => setModalOuvert(true)}
+          >
             <i className="bi bi-plus-lg"></i> Ajouter un employé
-          </Link>
+          </button>
         )}
       </div>
 
@@ -181,6 +194,13 @@ function Employes() {
           </div>
         )}
       </div>
+
+      {modalOuvert && (
+        <AjouterEmployeModal
+          onClose={() => setModalOuvert(false)}
+          onSuccess={handleAjoute}
+        />
+      )}
     </LayoutAdmin>
   );
 }

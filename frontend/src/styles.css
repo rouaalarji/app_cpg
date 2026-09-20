@@ -97,3 +97,375 @@ body {
 .badge-cpg-warning { background: var(--cpg-warning-light); color: #b45309; font-weight: 500; }
 .badge-cpg-danger { background: var(--cpg-danger-light); color: #b91c1c; font-weight: 500; }
 .badge-cpg-neutral { background: #f1f5f9; color: var(--cpg-text-muted); font-weight: 500; }
+
+
+
+.login-page {
+  --login-brand: var(--cpg-primary, #123c3a);
+  --login-brand-deep: var(--cpg-primary-dark, #0b2726);
+  --login-accent: var(--cpg-accent, #1f7a6d);
+  --login-bg: var(--cpg-bg, #f5f7f8);
+  --login-ink: #1c2b2a;
+  --login-muted: #66757a;
+  --login-line: #d8e0e2;
+
+  display: grid;
+  grid-template-columns: minmax(360px, 5fr) 7fr;
+  min-height: 100vh;
+  color: var(--login-ink);
+  background: var(--login-bg);
+}
+
+/* ---------- Panneau de marque ---------- */
+.login-brand {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 3rem;
+  color: #fff;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 255, 255, 0.09), transparent 55%),
+    linear-gradient(160deg, var(--login-brand) 0%, var(--login-brand-deep) 100%);
+  overflow: hidden;
+}
+
+/* Trame discrète : lignes fines, sans décoration lourde */
+.login-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.035) 0 1px,
+    transparent 1px 22px
+  );
+  pointer-events: none;
+}
+
+.login-brand-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-logo-chip {
+  align-self: flex-start;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.login-logo-chip img {
+  display: block;
+  height: 96px;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+.login-brand-text h1 {
+  margin: 0 0 0.9rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.login-brand-text p {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ---------- Zone formulaire ---------- */
+.login-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login-subtitle {
+  margin: 0 0 2rem;
+  color: var(--login-muted);
+  font-size: 0.95rem;
+}
+
+.login-field {
+  margin-bottom: 1.25rem;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.login-input.form-control {
+  height: 46px;
+  padding: 0 0.9rem;
+  font-size: 0.95rem;
+  background: #fff;
+  border: 1px solid var(--login-line);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-input.form-control::placeholder {
+  color: #9aa7ab;
+}
+
+.login-input.form-control:focus {
+  border-color: var(--login-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-accent) 22%, transparent);
+}
+
+/* Champ mot de passe + bouton afficher/masquer */
+.login-password {
+  position: relative;
+}
+
+.login-password .login-input.form-control {
+  padding-right: 3rem;
+}
+
+.login-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--login-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.login-toggle:hover {
+  color: var(--login-ink);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.login-toggle:focus-visible {
+  outline: 2px solid var(--login-accent);
+  outline-offset: 1px;
+}
+
+/* Erreur */
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #8a1f1f;
+  background: #fdeeee;
+  border: 1px solid #f3c6c6;
+  border-radius: 8px;
+}
+
+.login-error svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* Bouton principal */
+.login-submit {
+  width: 100%;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.login-submit.btn {
+  color: #fff;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.login-submit.btn:hover:not(:disabled) {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.login-submit.btn:active:not(:disabled) {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+}
+
+.login-submit.btn:disabled {
+  color: #fff;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  opacity: 0.65;
+}
+
+.login-submit.btn:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.login-register {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--login-muted);
+}
+
+.login-register a {
+  color: var(--login-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-register a:hover {
+  text-decoration: underline;
+}
+
+.login-footer {
+  margin-top: 3rem;
+  font-size: 0.8rem;
+  color: var(--login-muted);
+}
+
+/* ---------- Tablette / mobile ---------- */
+@media (max-width: 991px) {
+  .login-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .login-brand {
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .login-brand-inner {
+    flex-direction: row;
+    align-items: center;
+    max-width: none;
+  }
+
+  .login-logo-chip {
+    padding: 0.6rem 1rem;
+  }
+
+  .login-logo-chip img {
+    height: 56px;
+  }
+
+  .login-brand-text {
+    display: none;
+  }
+
+  .login-main {
+    justify-content: flex-start;
+    padding-top: 2.5rem;
+  }
+}
+.login-page .login-brand {
+  align-items: center;
+  justify-content: center;
+}
+
+.login-page .login-brand-inner {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  max-width: 420px;
+  text-align: center;
+}
+
+.login-page .login-logo-chip {
+  align-self: center;
+  padding: 1.5rem 2rem;
+  border-radius: 14px;
+}
+
+.login-page .login-logo-chip img {
+  height: 140px;
+  width: auto;
+}
+
+.login-page .login-brand-text h1 {
+  text-align: center;
+  margin: 0;
+}
+
+@media (max-width: 991px) {
+  .login-page .login-brand-inner {
+    flex-direction: row;
+  }
+
+  .login-page .login-logo-chip img {
+    height: 80px;
+  }
+}
+.badge.badge-cpg-primary { background: var(--cpg-primary-light); color: var(--cpg-primary); font-weight: 500; }
+.badge.badge-cpg-success { background: var(--cpg-success-light); color: #047857; font-weight: 500; }
+.badge.badge-cpg-warning { background: var(--cpg-warning-light); color: #b45309; font-weight: 500; }
+.badge.badge-cpg-danger  { background: var(--cpg-danger-light);  color: #b91c1c; font-weight: 500; }
+.badge.badge-cpg-neutral { background: #f1f5f9; color: var(--cpg-text-muted); font-weight: 500; }
+
+
+/* Boutons CPG : plus précis que Bootstrap, donc prioritaires */
+.btn.btn-cpg-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--cpg-primary);
+  --bs-btn-border-color: var(--cpg-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--cpg-primary-hover);
+  --bs-btn-hover-border-color: var(--cpg-primary-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--cpg-primary-hover);
+  --bs-btn-active-border-color: var(--cpg-primary-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--cpg-primary);
+  --bs-btn-disabled-border-color: var(--cpg-primary);
+
+  color: #fff;
+  background-color: var(--cpg-primary);
+  border-color: var(--cpg-primary);
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.btn.btn-cpg-primary:hover,
+.btn.btn-cpg-primary:focus-visible,
+.btn.btn-cpg-primary:active {
+  color: #fff;
+  background-color: var(--cpg-primary-hover);
+  border-color: var(--cpg-primary-hover);
+}
+
+.btn.btn-cpg-primary:disabled {
+  opacity: 0.65;
+}

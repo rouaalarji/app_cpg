@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAll, create, update, remove } from '../../services/departementService';
+import { getByDepartement } from '../../services/employeService';
+import Modal from '../../components/Modal';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function Departements() {
@@ -11,6 +13,12 @@ function Departements() {
   const [afficherForm, setAfficherForm] = useState(false);
   const [idEnEdition, setIdEnEdition] = useState(null);
   const [formData, setFormData] = useState({ nom: '', description: '', lieu: '' });
+
+  // --- Modale liste des employés ---
+  const [afficherEmployes, setAfficherEmployes] = useState(false);
+  const [departementSelectionne, setDepartementSelectionne] = useState(null);
+  const [employesListe, setEmployesListe] = useState([]);
+  const [chargementEmployes, setChargementEmployes] = useState(false);
 
   async function charger() {
     try {
@@ -39,6 +47,20 @@ function Departements() {
       lieu: dep.lieu || '',
     });
     setAfficherForm(true);
+  }
+
+  async function ouvrirListeEmployes(departement) {
+    setDepartementSelectionne(departement);
+    setAfficherEmployes(true);
+    setChargementEmployes(true);
+    try {
+      const data = await getByDepartement(departement.id);
+      setEmployesListe(data);
+    } catch (err) {
+      setEmployesListe([]);
+    } finally {
+      setChargementEmployes(false);
+    }
   }
 
   function handleChange(e) {
@@ -140,6 +162,36 @@ function Departements() {
         </div>
       )}
 
+      {afficherEmployes && (
+        <Modal titre={`Employés — ${departementSelectionne?.nom || ''}`} onFermer={() => setAfficherEmployes(false)}>
+          {chargementEmployes && <p className="text-muted mb-0">Chargement...</p>}
+
+          {!chargementEmployes && employesListe.length === 0 && (
+            <p className="text-muted text-center py-4 mb-0">Aucun employé dans ce département.</p>
+          )}
+
+          {!chargementEmployes && employesListe.length > 0 && (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {employesListe.map((e) => (
+                <div
+                  key={e.id}
+                  className="d-flex justify-content-between align-items-center py-2 border-bottom"
+                  style={{ borderColor: 'var(--cpg-border)' }}
+                >
+                  <div>
+                    <div className="fw-semibold" style={{ fontSize: '14px' }}>{e.prenom} {e.nom}</div>
+                    <div className="text-muted" style={{ fontSize: '12px' }}>{e.email} — {e.service_nom}</div>
+                  </div>
+                  <span className={`badge ${e.statut === 'ACTIF' ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
+                    {e.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
+
       <div className="card-cpg p-0 overflow-hidden">
         <div className="p-3 border-bottom" style={{ borderColor: 'var(--cpg-border)' }}>
           <div className="input-group" style={{ maxWidth: '320px' }}>
@@ -173,12 +225,16 @@ function Departements() {
             </thead>
             <tbody>
               {filtres.map((d) => (
-                <tr key={d.id}>
+                <tr
+                  key={d.id}
+                  onClick={() => ouvrirListeEmployes(d)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td className="fw-semibold">{d.nom}</td>
                   <td className="text-muted">{d.lieu || '—'}</td>
                   <td><span className="badge badge-cpg-neutral">{d.nb_services}</span></td>
                   <td><span className="badge badge-cpg-success">{d.nb_employes}</span></td>
-                  <td className="text-end">
+                  <td className="text-end" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => ouvrirEdition(d)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
                     <button onClick={() => handleSupprimer(d.id, d.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
                   </td>

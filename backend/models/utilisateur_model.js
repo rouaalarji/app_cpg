@@ -53,4 +53,11 @@ async function updateStatut(id, actif) {
 async function updateMotDePasse(id, motDePasseHash) {
   await db.query('UPDATE utilisateur SET mot_de_passe = ? WHERE id = ?', [motDePasseHash, id]);
 }
-module.exports = { findByEmail, findById, create, getAll, updateRole, updateStatut, updateMotDePasse };
+async function getById(id) {
+  const [rows] = await db.query('SELECT * FROM utilisateur WHERE id = ?', [id]);
+  return rows[0];
+}
+async function updateRole(id, role) {
+  await db.query('UPDATE utilisateur SET role = ? WHERE id = ?', [role, id]);
+}
+module.exports = { findByEmail, findById, create, getAll, updateRole, updateStatut, updateMotDePasse, getById, updateRole };

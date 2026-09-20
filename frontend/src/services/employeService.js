@@ -32,4 +32,13 @@ async function getMonProfil() {
   const response = await api.get('/employes/mon-profil');
   return response.data;
 }
-export { getAll, getById, create, update, remove,getMonEquipe,getMonProfil };
+async function getByService(serviceId) {
+  const response = await api.get(`/employes/service/${serviceId}`);
+  return response.data;
+}
+
+async function getByDepartement(departementId) {
+  const response = await api.get(`/employes/departement/${departementId}`);
+  return response.data;
+}
+export { getAll, getById, create, update, remove,getMonEquipe,getMonProfil,getByService,getByDepartement };

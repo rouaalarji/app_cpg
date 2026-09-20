@@ -24,7 +24,6 @@ import DemanderCongeChef from './pages/chef/DemanderConge';
 // Espace RH/Admin
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import Employes from './pages/admin/Employes';
-import AjouterEmploye from './pages/admin/AjouterEmploye';
 import ModifierEmploye from './pages/admin/ModifierEmploye';
 import Services from './pages/admin/Services';
 import AjouterService from './pages/admin/AjouterService';
@@ -65,7 +64,6 @@ function App() {
           <Route path="/admin/dashboard" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><DashboardAdmin /></RoleRoute>} />
           <Route path="/admin/validation-conges" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><DemandesConge /></RoleRoute>} />
           <Route path="/admin/employes" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Employes /></RoleRoute>} />
-          <Route path="/admin/employes/ajouter" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><AjouterEmploye /></RoleRoute>} />
           <Route path="/admin/employes/modifier/:id" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><ModifierEmploye /></RoleRoute>} />
           <Route path="/admin/services" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Services /></RoleRoute>} />
           <Route path="/admin/services/ajouter" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><AjouterService /></RoleRoute>} />

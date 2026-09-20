@@ -12,14 +12,17 @@ async function getAll() {
 }
 
 async function getById(id) {
-  const [rows] = await db.query('SELECT * FROM employe WHERE id = ?', [id]);
+  const [rows] = await db.query(`
+    SELECT e.*, s.nom AS service_nom, u.email, u.role
+    FROM employe e
+    LEFT JOIN service s ON e.service_id = s.id
+    LEFT JOIN utilisateur u ON e.utilisateur_id = u.id
+    WHERE e.id = ?
+  `, [id]);
   return rows[0];
 }
 
-async function getByServiceId(serviceId) {
-  const [rows] = await db.query('SELECT * FROM employe WHERE service_id = ?', [serviceId]);
-  return rows;
-}
+
 
 async function getByServiceIdAvecPresence(serviceId, date, excludeEmployeId = null) {
   let query = `
@@ -98,6 +101,7 @@ async function update(id, employe) {
 async function remove(id) {
   await db.query('DELETE FROM employe WHERE id = ?', [id]);
 }
+
 async function getDernierMatricule() {
   const [rows] = await db.query(
     "SELECT matricule FROM employe ORDER BY CAST(matricule AS UNSIGNED) DESC LIMIT 1"
@@ -112,7 +116,29 @@ function genererProchainMatricule(dernierMatricule) {
   return String(prochain).padStart(4, '0');
 }
 
+async function getByServiceId(serviceId) {
+  const [rows] = await db.query(`
+    SELECT e.*, u.email, u.role
+    FROM employe e
+    LEFT JOIN utilisateur u ON e.utilisateur_id = u.id
+    WHERE e.service_id = ?
+    ORDER BY e.nom
+  `, [serviceId]);
+  return rows;
+}
+
+async function getByDepartementId(departementId) {
+  const [rows] = await db.query(`
+    SELECT e.*, s.nom AS service_nom, u.email, u.role
+    FROM employe e
+    JOIN service s ON e.service_id = s.id
+    LEFT JOIN utilisateur u ON e.utilisateur_id = u.id
+    WHERE s.departement_id = ?
+    ORDER BY e.nom
+  `, [departementId]);
+  return rows;
+}
 module.exports = {
   getAll, getById, getByServiceId, getByServiceIdAvecPresence, getServiceIdParUtilisateur,
-  getEmployesAvecRoleChef, getProfilComplet, create, update, remove, getDernierMatricule, genererProchainMatricule
+  getEmployesAvecRoleChef, getProfilComplet, create, update, remove, getDernierMatricule, genererProchainMatricule, getByDepartementId
 };

@@ -13,5 +13,7 @@ router.get('/:id', employeController.getById);
 router.post('/', autoriserRoles('ADMIN'), employeController.create);
 router.put('/:id', autoriserRoles('ADMIN'), employeController.update);
 router.delete('/:id', autoriserRoles('ADMIN'), employeController.remove);
+router.get('/service/:serviceId', autoriserRoles('RH', 'ADMIN'), employeController.getByService);
+router.get('/departement/:departementId', autoriserRoles('RH', 'ADMIN'), employeController.getByDepartement);
 
 module.exports = router;

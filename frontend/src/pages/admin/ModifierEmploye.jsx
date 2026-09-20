@@ -4,6 +4,13 @@ import { getById, update } from '../../services/employeService';
 import api from '../../services/api';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
+const LABELS_ROLE = {
+  EMPLOYE: 'Employé',
+  CHEF: 'Chef de service',
+  RH: 'Ressources Humaines',
+  ADMIN: 'Administrateur',
+};
+
 function ModifierEmploye() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,6 +25,7 @@ function ModifierEmploye() {
     dateNaissance: '',
     serviceId: '',
     statut: 'ACTIF',
+    role: 'EMPLOYE',
   });
 
   useEffect(() => {
@@ -34,6 +42,7 @@ function ModifierEmploye() {
           dateNaissance: employe.date_naissance ? employe.date_naissance.split('T')[0] : '',
           serviceId: employe.service_id,
           statut: employe.statut,
+          role: employe.role || 'EMPLOYE',
         });
       } catch (err) {
         setErreur('Impossible de charger cet employé');
@@ -100,6 +109,21 @@ function ModifierEmploye() {
                 <option key={s.id} value={s.id}>{s.code} - {s.nom}</option>
               ))}
             </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label small fw-semibold">Rôle</label>
+            <select name="role" value={formData.role} onChange={handleChange} required className="form-select">
+              {Object.entries(LABELS_ROLE).map(([valeur, label]) => (
+                <option key={valeur} value={valeur}>{label}</option>
+              ))}
+            </select>
+            {formData.role === 'CHEF' && (
+              <p className="text-muted small mt-1 mb-0">
+                <i className="bi bi-info-circle me-1"></i>
+                Cet employé deviendra le chef du service sélectionné ci-dessus (s'il n'a pas déjà un chef).
+              </p>
+            )}
           </div>
 
           <div className="mb-4">

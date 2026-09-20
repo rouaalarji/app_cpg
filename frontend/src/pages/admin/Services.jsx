@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { getByService } from '../../services/employeService';
 import Modal from '../../components/Modal';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 const NOUVEAU = '__nouveau__';
 
 function Services() {
-
   const [services, setServices] = useState([]);
   const [departements, setDepartements] = useState([]);
   const [chefs, setChefs] = useState([]);
@@ -22,6 +22,12 @@ function Services() {
   const [formData, setFormData] = useState({
     code: '', nom: '', departementId: '', nouveauDepartementNom: '', chefId: '',
   });
+
+  // --- Modale liste des employés ---
+  const [afficherEmployes, setAfficherEmployes] = useState(false);
+  const [serviceSelectionne, setServiceSelectionne] = useState(null);
+  const [employesListe, setEmployesListe] = useState([]);
+  const [chargementEmployes, setChargementEmployes] = useState(false);
 
   async function charger() {
     try {
@@ -60,6 +66,20 @@ function Services() {
     });
     setErreurForm('');
     setAfficherForm(true);
+  }
+
+  async function ouvrirListeEmployes(service) {
+    setServiceSelectionne(service);
+    setAfficherEmployes(true);
+    setChargementEmployes(true);
+    try {
+      const data = await getByService(service.id);
+      setEmployesListe(data);
+    } catch (err) {
+      setEmployesListe([]);
+    } finally {
+      setChargementEmployes(false);
+    }
   }
 
   function handleChange(e) {
@@ -131,9 +151,9 @@ function Services() {
           <Link to="/admin/departements" className="btn btn-outline-secondary d-flex align-items-center gap-1">
             <i className="bi bi-diagram-3"></i> Gérer les départements
           </Link>
-            <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
-              <i className="bi bi-plus-lg"></i> Ajouter un service
-            </button>
+          <button onClick={ouvrirAjout} className="btn btn-cpg-primary d-flex align-items-center gap-1">
+            <i className="bi bi-plus-lg"></i> Ajouter un service
+          </button>
         </div>
       </div>
 
@@ -195,6 +215,36 @@ function Services() {
         </Modal>
       )}
 
+      {afficherEmployes && (
+        <Modal titre={`Employés — ${serviceSelectionne?.nom || ''}`} onFermer={() => setAfficherEmployes(false)}>
+          {chargementEmployes && <p className="text-muted mb-0">Chargement...</p>}
+
+          {!chargementEmployes && employesListe.length === 0 && (
+            <p className="text-muted text-center py-4 mb-0">Aucun employé dans ce service.</p>
+          )}
+
+          {!chargementEmployes && employesListe.length > 0 && (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {employesListe.map((e) => (
+                <div
+                  key={e.id}
+                  className="d-flex justify-content-between align-items-center py-2 border-bottom"
+                  style={{ borderColor: 'var(--cpg-border)' }}
+                >
+                  <div>
+                    <div className="fw-semibold" style={{ fontSize: '14px' }}>{e.prenom} {e.nom}</div>
+                    <div className="text-muted" style={{ fontSize: '12px' }}>{e.email} — {e.matricule}</div>
+                  </div>
+                  <span className={`badge ${e.statut === 'ACTIF' ? 'badge-cpg-success' : 'badge-cpg-neutral'}`}>
+                    {e.statut === 'ACTIF' ? 'Actif' : 'Inactif'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
+
       <div className="card-cpg p-0 overflow-hidden">
         <div className="p-3 border-bottom" style={{ borderColor: 'var(--cpg-border)' }}>
           <div className="input-group" style={{ maxWidth: '320px' }}>
@@ -225,22 +275,26 @@ function Services() {
                 <th>Lieu</th>
                 <th>Chef</th>
                 <th>Effectif</th>
-                 <th className="text-end">Actions</th>
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtres.map((s) => (
-                <tr key={s.id}>
+                <tr
+                  key={s.id}
+                  onClick={() => ouvrirListeEmployes(s)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td className="text-muted">{s.code}</td>
                   <td className="fw-semibold">{s.nom}</td>
                   <td><span className="badge badge-cpg-neutral">{s.departement_nom}</span></td>
                   <td className="text-muted">{s.departement_lieu || '—'}</td>
                   <td>{s.chef_nom || <span className="text-muted">Non défini</span>}</td>
                   <td><span className="badge badge-cpg-success">{s.nb_employes} employé{s.nb_employes > 1 ? 's' : ''}</span></td>
-                    <td className="text-end">
-                      <button onClick={() => ouvrirEdition(s)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
-                      <button onClick={() => handleSupprimer(s.id, s.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
-                    </td>
+                  <td className="text-end" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => ouvrirEdition(s)} className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
+                    <button onClick={() => handleSupprimer(s.id, s.nom)} className="btn btn-sm btn-light text-danger"><i className="bi bi-trash"></i></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
