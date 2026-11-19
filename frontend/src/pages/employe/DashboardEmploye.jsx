@@ -6,8 +6,22 @@ import { getResumePersonnel } from '../../services/demandeCongeService';
 import { getMesAbsences } from '../../services/absenceService';
 import LayoutEmploye from '../../components/layout/LayoutEmploye';
 import BandeauJourFerie from '../../components/BandeauJourFerie';
+function dateLocaleStr(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const j = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${j}`;
+}
+
 function aujourdHuiStr() {
-  return new Date().toISOString().split('T')[0];
+  return dateLocaleStr();
+}
+
+function normaliserDate(valeur) {
+  if (!valeur) return '';
+  if (typeof valeur === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valeur)) return valeur;
+  const d = new Date(valeur);
+  return Number.isNaN(d.getTime()) ? '' : dateLocaleStr(d);
 }
 
 function formatDateAffichage(dateStr) {
@@ -27,26 +41,28 @@ function DashboardEmploye() {
   const prenom = utilisateur?.email?.split('@')[0];
 
   useEffect(() => {
-    async function charger() {
-      try {
-        const [presences, resumeData, absences] = await Promise.all([
-          getMesPresences(),
-          getResumePersonnel(),
-          getMesAbsences(),
-        ]);
-        const duJour = presences.find((p) => p.date === aujourdHuiStr());
-        setPresenceDuJour(duJour || null);
-        setResume(resumeData);
-        setAbsencesRecentes(absences.slice(0, 3));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setChargement(false);
-      }
-    }
-    charger();
-  }, []);
+  async function charger() {
+    const [presencesRes, resumeRes, absencesRes] = await Promise.allSettled([
+      getMesPresences(),
+      getResumePersonnel(),
+      getMesAbsences(),
+    ]);
 
+    if (presencesRes.status === 'fulfilled') {
+      const duJour = presencesRes.value.find((p) => normaliserDate(p.date) === aujourdHuiStr());
+      setPresenceDuJour(duJour || null);
+    }
+    if (resumeRes.status === 'fulfilled') {
+      setResume(resumeRes.value);
+    }
+    if (absencesRes.status === 'fulfilled') {
+      setAbsencesRecentes(absencesRes.value.slice(0, 3));
+    }
+
+    setChargement(false);
+  }
+  charger();
+}, []);
   return (
     <LayoutEmploye>
       {/* Message de bienvenue */}
@@ -55,12 +71,12 @@ function DashboardEmploye() {
           {salutation}
         </p>
         <h2 className="fw-bold mb-1" style={{ letterSpacing: '-0.02em' }}>
-          Bienvenue{prenom ? `, ${prenom}` : ''} 
+          Bienvenue{prenom ? `, ${prenom}` : ''}
         </h2>
         <p className="text-muted mb-0 text-capitalize">{formatDateAffichage(aujourdHuiStr())}</p>
         <BandeauJourFerie />
       </div>
-       
+
       {chargement && (
         <div className="d-flex justify-content-center align-items-center" style={{ height: '160px' }}>
           <div className="spinner-border" style={{ color: 'var(--cpg-primary)' }} role="status"></div>
@@ -96,13 +112,12 @@ function DashboardEmploye() {
                     </div>
                     <div className="col-4">
                       <p className="text-muted mb-1" style={{ fontSize: '12px' }}>Statut</p>
-                      <span className={`badge ${
-                        presenceDuJour.statut === 'PRESENT' ? 'badge-cpg-success' :
-                        presenceDuJour.statut === 'RETARD' ? 'badge-cpg-warning' :
-                        'badge-cpg-danger'
-                      }`}>
+                      <span className={`badge ${presenceDuJour.statut === 'PRESENT' ? 'badge-cpg-success' :
+                          presenceDuJour.statut === 'RETARD' ? 'badge-cpg-warning' :
+                            'badge-cpg-danger'
+                        }`}>
                         {presenceDuJour.statut === 'PRESENT' ? 'Présent' :
-                         presenceDuJour.statut === 'RETARD' ? 'Retard' : 'Absent'}
+                          presenceDuJour.statut === 'RETARD' ? 'Retard' : 'Absent'}
                       </span>
                     </div>
                   </div>

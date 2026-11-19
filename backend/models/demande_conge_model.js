@@ -1,5 +1,5 @@
 const db = require('../config/database');
-
+// Toutes les demandes, pour la page admin "Validation congés".
 async function getAll() {
   const [rows] = await db.query(`
     SELECT dc.*, e.nom AS employe_nom, e.prenom AS employe_prenom, e.matricule,
@@ -11,12 +11,13 @@ async function getAll() {
   `);
   return rows;
 }
+// Une seule demande par son id. rows[0] : premier résultat, ou undefined si inexistant.
 
 async function getById(id) {
   const [rows] = await db.query('SELECT * FROM demande_conge WHERE id = ?', [id]);
   return rows[0];
 }
-
+  // Historique des demandes d'un employé (page "Mes congés" de l'employé)
 async function getByEmployeId(employeId) {
   const [rows] = await db.query(
     'SELECT * FROM demande_conge WHERE employe_id = ? ORDER BY date_creation DESC',
@@ -25,7 +26,7 @@ async function getByEmployeId(employeId) {
   return rows;
 }
 
-// Demandes en attente de validation par un chef précis (ses subordonnés)
+// Demandes en attente de validation par un chef précis 
 async function getEnAttentePourChef(chefId) {
   const [rows] = await db.query(
     `SELECT dc.* FROM demande_conge dc
@@ -44,7 +45,7 @@ async function getEnAttentePourRh() {
   );
   return rows;
 }
-
+// Crée une demande de congé.
 async function create({ employeId, typeCongeId, dateDebut, dateFin, nbJours, motif, adresseConge, telephoneConge, pieceJustificative, statutInitial }) {
   const [result] = await db.query(
     `INSERT INTO demande_conge 
@@ -91,6 +92,8 @@ async function getParServiceEnAttente(serviceId) {
   return rows;
 }
 async function getJoursUtilisesCetteAnnee(employeId, typeCongeId) {
+  // Total de jours déjà pris ou demandés cette année pour un type de congé,
+
   const [[{ total }]] = await db.query(
     `SELECT COALESCE(SUM(nb_jours), 0) AS total 
      FROM demande_conge 
@@ -102,6 +105,8 @@ async function getJoursUtilisesCetteAnnee(employeId, typeCongeId) {
   return total;
 }
 async function getChevauchement(employeId, dateDebut, dateFin) {
+  // Détecte si la nouvelle période croise une demande existante du même employé.
+// Deux périodes se chevauchent si : début_existante <= fin_nouvelle ET fin_existante >= début_nouvelle.
   const [rows] = await db.query(
     `SELECT * FROM demande_conge 
      WHERE employe_id = ? 
@@ -127,7 +132,30 @@ async function getProchainCongeValide(employeId) {
   );
   return rows[0];
 }
+async function getStatsMois(mois) {
+  // mois au format 'YYYY-MM' — on se base sur la date de création de la demande
+  const [[totaux]] = await db.query(`
+    SELECT 
+      COUNT(*) AS total,
+      SUM(CASE WHEN statut = 'EN_ATTENTE' THEN 1 ELSE 0 END) AS enAttente,
+      SUM(CASE WHEN statut = 'VALIDE_RH' THEN 1 ELSE 0 END) AS acceptees,
+      SUM(CASE WHEN statut = 'REFUSE' THEN 1 ELSE 0 END) AS refusees
+    FROM demande_conge
+    WHERE DATE_FORMAT(date_creation, '%Y-%m') = ?
+  `, [mois]);
+
+  const [parType] = await db.query(`
+    SELECT tc.nom AS type_conge_nom, COUNT(*) AS nb_demandes
+    FROM demande_conge dc
+    JOIN type_conge tc ON dc.type_conge_id = tc.id
+    WHERE DATE_FORMAT(dc.date_creation, '%Y-%m') = ?
+    GROUP BY tc.id
+    ORDER BY nb_demandes DESC
+  `, [mois]);
+
+  return { mois, ...totaux, parType };
+}
 module.exports = {
   getAll, getById, getByEmployeId, getEnAttentePourChef, getEnAttentePourRh,
-  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee, getChevauchement, annuler, getProchainCongeValide
+  create, validerParChef, validerParRh, refuser,getParServiceEnAttente,getJoursUtilisesCetteAnnee, getChevauchement, annuler, getProchainCongeValide, getStatsMois
 };

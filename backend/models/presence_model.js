@@ -49,4 +49,50 @@ async function update(id, { heureArrivee, heureDepart, statut }) {
   );
 }
 
-module.exports = { getAll, getById, getByEmployeId,  create, updateHeureDepart, update };
+async function getGrilleParService(serviceId, dateDebut, dateFin) {
+  const [employes] = await db.query(
+    `SELECT id, nom, prenom, matricule
+     FROM employe
+     WHERE service_id = ?
+     ORDER BY nom`,
+    [serviceId]
+  );
+
+  const [presences] = await db.query(
+    `SELECT employe_id, date, statut, heure_arrivee, heure_depart
+     FROM presence
+     WHERE employe_id IN (SELECT id FROM employe WHERE service_id = ?)
+       AND date BETWEEN ? AND ?`,
+    [serviceId, dateDebut, dateFin]
+  );
+
+  return { employes, presences };
+}
+async function getStatsMois(mois) {
+  // mois au format 'YYYY-MM'
+  const [[totaux]] = await db.query(`
+    SELECT 
+      COUNT(*) AS total,
+      SUM(CASE WHEN statut = 'PRESENT' THEN 1 ELSE 0 END) AS presents,
+      SUM(CASE WHEN statut = 'RETARD' THEN 1 ELSE 0 END) AS retards,
+      SUM(CASE WHEN statut = 'ABSENT' THEN 1 ELSE 0 END) AS absents
+    FROM presence
+    WHERE DATE_FORMAT(date, '%Y-%m') = ?
+  `, [mois]);
+
+  const [parService] = await db.query(`
+    SELECT s.nom AS service_nom,
+      SUM(CASE WHEN p.statut = 'PRESENT' THEN 1 ELSE 0 END) AS presents,
+      SUM(CASE WHEN p.statut = 'RETARD' THEN 1 ELSE 0 END) AS retards,
+      SUM(CASE WHEN p.statut = 'ABSENT' THEN 1 ELSE 0 END) AS absents
+    FROM presence p
+    JOIN employe e ON p.employe_id = e.id
+    JOIN service s ON e.service_id = s.id
+    WHERE DATE_FORMAT(p.date, '%Y-%m') = ?
+    GROUP BY s.id
+    ORDER BY absents DESC
+  `, [mois]);
+
+  return { mois, ...totaux, parService };
+}
+module.exports = { getAll, getById, getByEmployeId, getGrilleParService,  create, updateHeureDepart, update, getStatsMois };

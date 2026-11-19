@@ -15,5 +15,6 @@ router.get('/historique-mensuel', absenceController.getHistoriqueMensuel);
 router.get('/mois/:mois', absenceController.getByMois);
 router.post('/', upload.single('justificatif'), absenceController.create);
 router.put('/:id', autoriserRoles('RH', 'CHEF', 'ADMIN'), absenceController.update);
+// en utilise upload.single('justificatif') pour gérer le téléchargement d'un seul fichier avec le champ 'justificatif' dans le formulaire. Cela permet de mettre à jour le justificatif d'une absence existante.
 router.put('/:id/declarer', upload.single('justificatif'), absenceController.declarerSurExistante);
 module.exports = router;

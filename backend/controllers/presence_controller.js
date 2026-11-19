@@ -1,7 +1,12 @@
 const presenceModel = require('../models/presence_model');
 const db = require('../config/database');
-const absenceModel = require('../models/absence_model'); 
+const absenceModel = require('../models/absence_model');
 
+function formaterDate(valeur) {
+  if (!valeur) return '';
+  if (typeof valeur === 'string') return valeur.slice(0, 10);
+  return valeur.toISOString().split('T')[0];
+}
 async function getAll(req, res) {
   try {
     const presences = await presenceModel.getAll();
@@ -120,4 +125,35 @@ async function getByEmploye(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
-module.exports = { getAll, getMesPresences, checkIn, checkOut, create, getByEmploye };
+async function getGrille(req, res) {
+  try {
+    const { serviceId, debut, fin } = req.query;
+    if (!serviceId || !debut || !fin) {
+      return res.status(400).json({ message: 'Paramètres manquants (serviceId, debut, fin)' });
+    }
+
+    const { employes, presences } = await presenceModel.getGrilleParService(serviceId, debut, fin);
+
+    // On regroupe les présences par employé pour simplifier le travail du frontend
+    const presencesParEmploye = {};
+    presences.forEach((p) => {
+      if (!presencesParEmploye[p.employe_id]) presencesParEmploye[p.employe_id] = {};
+      presencesParEmploye[p.employe_id][formaterDate(p.date)] = {
+        statut: p.statut,
+        heure_arrivee: p.heure_arrivee,
+        heure_depart: p.heure_depart,
+      };
+    });
+
+    const grille = employes.map((e) => ({
+      ...e,
+      presences: presencesParEmploye[e.id] || {},
+    }));
+
+    res.json(grille);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+module.exports = { getAll, getMesPresences, checkIn, checkOut, create, getByEmploye, getGrille };

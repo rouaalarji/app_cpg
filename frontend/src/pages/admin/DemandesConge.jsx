@@ -22,7 +22,9 @@ function DemandesConge() {
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
   const [demandeSelectionnee, setDemandeSelectionnee] = useState(null);
-
+// au-dessus de : async function charger()  Va chercher la liste des demandes et la met dans l'état.
+// Elle est définie à part car elle est appelée à deux endroits :
+// à l'ouverture de la page ET après chaque validation/refus.
   async function charger() {
     try {
       const data = await getAll();
@@ -37,7 +39,8 @@ function DemandesConge() {
   useEffect(() => {
     charger();
   }, []);
-
+// Appelée quand l'admin/RH clique sur "Valider" dans la fenêtre de détail.
+// Reçoit l'id de la demande.
   async function handleValider(id) {
     if (!window.confirm('Valider définitivement cette demande ?')) return;
     try {
@@ -50,6 +53,8 @@ function DemandesConge() {
   }
 
   async function handleRefuser(id) {
+    // Appelée quand on clique sur "Refuser" dans la fenêtre de détail
+
     const commentaire = window.prompt('Motif du refus (obligatoire) :');
     if (!commentaire || !commentaire.trim()) {
       alert('Le motif de refus est obligatoire');

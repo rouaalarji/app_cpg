@@ -16,6 +16,7 @@ function MesAbsences() {
 
   async function charger() {
     try {
+      //getMesAbsences() envoie une requête au backend pour récupérer les absences de l'employé connecté
       const data = await getMesAbsences();
       setAbsences(data);
     } catch (err) {
@@ -24,7 +25,7 @@ function MesAbsences() {
       setChargement(false);
     }
   }
-
+// role de useEffect est de charger  automatique les absences de l'employé connecté
   useEffect(() => {
     charger();
   }, []);
@@ -120,6 +121,7 @@ function MesAbsences() {
           <p className="text-muted small mb-3">
             Période concernée : <strong>{absenceEnDeclaration.date_debut} → {absenceEnDeclaration.date_fin}</strong>
           </p>
+{/*comment fairre commntaire  handleSubmitDeclaration est la fonction qui gère la soumission du formulaire de déclaration d'absence il est trouver dans dessus*/}
           <form onSubmit={handleSubmitDeclaration}>
             <div className="mb-3">
               <label className="form-label small fw-semibold">Motif</label>
@@ -127,6 +129,7 @@ function MesAbsences() {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-semibold">Justificatif (optionnel)</label>
+              {/* de type file et en accepte seulement les fichiers PDF, JPG, JPEG et PNG. Lorsqu'un fichier est sélectionné, il est stocké dans l'état fichier via setFichier. */}
               <input type="file" onChange={(e) => setFichier(e.target.files[0])} className="form-control" accept=".pdf,.jpg,.jpeg,.png" />
               <small className="text-muted">Un justificatif joint marque automatiquement l'absence comme "Justifiée".</small>
             </div>
@@ -135,6 +138,7 @@ function MesAbsences() {
               <button type="submit" disabled={envoiEnCours} className="btn btn-cpg-primary flex-grow-1">
                 {envoiEnCours ? 'Envoi...' : 'Confirmer la déclaration'}
               </button>
+              {/*setAbsenceEnDeclaration(null) est la fonction qui permet de fermer le modal de déclaration */}
               <button type="button" onClick={() => setAbsenceEnDeclaration(null)} className="btn btn-outline-secondary">
                 Annuler
               </button>

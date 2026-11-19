@@ -142,12 +142,13 @@ async function getByMois(req, res) {
 }
 async function declarerSurExistante(req, res) {
   try {
+    // recuperer l'identifiant de l'employé associé à l'utilisateur connecté
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
     if (!rows[0]) {
       return res.status(404).json({ message: 'Profil employé introuvable' });
     }
     const employeId = rows[0].id;
-
+// recuperer l'absence par son identifiant et vérifier qu'elle appartient à l'employé connecté
     const absence = await absenceModel.getById(req.params.id);
     if (!absence) {
       return res.status(404).json({ message: 'Absence non trouvée' });
@@ -155,15 +156,17 @@ async function declarerSurExistante(req, res) {
     if (absence.employe_id !== employeId) {
       return res.status(403).json({ message: "Cette absence ne vous appartient pas" });
     }
-
+   // mettre à jour l'absence avec le motif et le justificatif fournis, et marquer l'absence comme déclarée
     const { motif } = req.body;
+    // Si un fichier justificatif est fourni, on le stocke dans le dossier uploads/justificatifs et on met à jour le chemin dans la base de données. Sinon, on garde l'ancien justificatif.
     const justificatif = req.file ? `/uploads/justificatifs/${req.file.filename}` : absence.justificatif;
-
+// mettre à jour l'absence avec le motif et le justificatif fournis
     await absenceModel.update(req.params.id, {
       motif: motif || absence.motif,
       justificatif,
       statut: justificatif ? 'JUSTIFIEE' : absence.statut,
     });
+    // marquer l'absence comme déclarée
     await absenceModel.marquerDeclaree(req.params.id);
 
     res.json({ message: 'Déclaration enregistrée' });

@@ -31,15 +31,18 @@ function initiales(nom, prenom) {
 }
 
 function Employes() {
+  // emplyes et setemployes sont des états pour stocker la liste des employés et les mettre à jour 
   const [employes, setEmployes] = useState([]);
+  // chargement et setchargement sont des états pour gérer l'affichage d'un message de chargement pendant la récupération des données
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
   const [recherche, setRecherche] = useState('');
   const [modalOuvert, setModalOuvert] = useState(false);
+  // useAuth est un hook personnalisé pour accéder aux informations de l'utilisateur connecté, notamment son rôle (ADMIN, RH, CHEF, EMPLOYE)
   const { utilisateur } = useAuth();
   const estAdmin = utilisateur?.role === 'ADMIN';
-
+// charger est une fonction asynchrone qui récupère la liste des employés depuis le backend 
   async function charger() {
     try {
       const data = await getAll();
@@ -54,7 +57,7 @@ function Employes() {
   useEffect(() => {
     charger();
   }, []);
-
+// handleSupprimer est une fonction asynchrone qui supprime un employé en appelant la fonction remove du service 
   async function handleSupprimer(id, nomComplet) {
     if (!window.confirm(`Supprimer l'employé ${nomComplet} ? Cette action est irréversible.`)) return;
     try {
@@ -66,7 +69,7 @@ function Employes() {
       alert(err.response?.data?.message || 'Erreur lors de la suppression');
     }
   }
-
+// handleAjoute est une fonction qui est appelée après l'ajout d'un employé. 
   function handleAjoute(nomComplet) {
     setModalOuvert(false);
     setMessageSucces(`${nomComplet} a été ajouté avec succès.`);

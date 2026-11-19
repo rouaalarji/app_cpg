@@ -3,6 +3,11 @@ const db = require('../config/database');
 const employeModel = require('../models/employe_model');
 const serviceModel = require('../models/service_model');
 const congeModel = require('../models/demande_conge_model');
+/*
+getStats : statistiques globales du dashboard Admin / RH.
+Route : GET /dashboard/stats
+Accès : ADMIN et RH (vérifié par les middlewares).
+*/
 async function getStats(req, res) {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -96,7 +101,7 @@ async function getStats(req, res) {
       dateFin: d.date_fin,
       etat: LABELS_ETAT[d.statut] || d.statut,
     }));
-
+// Envoie tout au frontend (code 200). Ces clés correspondent aux noms
     res.json({
       totalEmployes,
       employesActifs,
@@ -116,6 +121,7 @@ async function getStats(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+//chef : tous les chiffres sont filtrés sur le service du chef connecté, pas sur toute l'entreprise.
 async function getStatsChef(req, res) {
   try {
     const serviceId = await employeModel.getServiceIdParUtilisateur(req.utilisateur.id);
@@ -172,6 +178,11 @@ async function getStatsChef(req, res) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 }
+/**
+ * getDemandesConge : liste des demandes de congé en attente de l'équipe du chef connecté.
+ * Route : GET /dashboard/demandes-conge-equipe
+ * Accès : CHEF.
+ */
 async function getDemandesConge(req, res) {
   try {
     const [rows] = await db.query('SELECT id FROM employe WHERE utilisateur_id = ?', [req.utilisateur.id]);
@@ -184,8 +195,14 @@ async function getDemandesConge(req, res) {
     if (!service) {
       return res.status(403).json({ message: "Vous n'êtes chef d'aucun service actuellement" });
     }
-
+// Appelle la fonction getParServiceEnAttente du model demande_conge_model.js.
+// On lui donne l'id du service du chef (service.
+// Le model exécute la requête SQL et renvoie les demandes de congé
+// de ce service dont le statut est EN_ATTENTE (sous forme de tableau).
+// "await" : on attend la réponse de la base avant de continuer.
+// Le résultat est stocké dans la variable "demandes".
     const demandes = await congeModel.getParServiceEnAttente(service.id);
+    // Envoie le tableau "demandes" au frontend en JSON (code 200 par défaut).
     res.json(demandes);
   } catch (err) {
     console.error(err);

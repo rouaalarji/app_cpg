@@ -1,5 +1,4 @@
 import api from './api';
-
 async function getMesAbsences() {
   const response = await api.get('/absences/mes-absences');
   return response.data;
@@ -33,8 +32,10 @@ async function getByMois(mois) {
   const res = await api.get(`/absences/mois/${mois}`);
   return res.data;
 }
+// content type multipart/form-data est utilisé pour envoyer des fichiers binaires (comme des images ou des documents) ainsi que des données de formulaire. Cela permet d'envoyer à la fois le motif de l'absence et un fichier justificatif en une seule requête HTTP.
 async function declarerSurExistante(id, donnees) {
   const response = await api.put(`/absences/${id}/declarer`, donnees, {
+    // multipart/form-data est utilisé pour envoyer des fichiers binaires (comme des images ou des documents) 
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;

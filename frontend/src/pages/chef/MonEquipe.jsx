@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMonEquipe } from '../../services/employeService';
 import LayoutChef from '../../components/layout/LayoutChef';
+import Modal from '../../components/Modal';
 
 const COULEURS_PRESENCE = {
   PRESENT: 'badge-cpg-success',
@@ -8,11 +9,47 @@ const COULEURS_PRESENCE = {
   RETARD: 'badge-cpg-warning',
 };
 
+const LABELS_PRESENCE = {
+  PRESENT: 'Présent',
+  ABSENT: 'Absent',
+  RETARD: 'En retard',
+};
+
+const COULEURS_AVATAR = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
+
+function couleurAvatar(nom) {
+  const index = (nom?.charCodeAt(0) || 0) % COULEURS_AVATAR.length;
+  return COULEURS_AVATAR[index];
+}
+
+function initiales(nom, prenom) {
+  return `${prenom?.charAt(0) || ''}${nom?.charAt(0) || ''}`.toUpperCase();
+}
+
+function formaterDate(valeur) {
+  if (!valeur) return '—';
+  const d = new Date(valeur);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('fr-FR');
+}
+
+function Info({ label, children }) {
+  return (
+    <div className="col-sm-6 mb-3">
+      <div className="text-muted text-uppercase fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.03em' }}>
+        {label}
+      </div>
+      <div className="fw-medium">{children || '—'}</div>
+    </div>
+  );
+}
+
 function MonEquipe() {
   const [equipe, setEquipe] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
   const [recherche, setRecherche] = useState('');
+  const [employeSelectionne, setEmployeSelectionne] = useState(null);
 
   useEffect(() => {
     async function charger() {
@@ -71,7 +108,16 @@ function MonEquipe() {
             </thead>
             <tbody>
               {filtres.map((emp) => (
-                <tr key={emp.id}>
+                <tr
+                  key={emp.id}
+                  onClick={() => setEmployeSelectionne(emp)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setEmployeSelectionne(emp);
+                  }}
+                  tabIndex={0}
+                  style={{ cursor: 'pointer' }}
+                  title="Voir les informations"
+                >
                   <td className="text-muted">{emp.matricule}</td>
                   <td className="fw-semibold">{emp.nom}</td>
                   <td>{emp.prenom}</td>
@@ -91,6 +137,59 @@ function MonEquipe() {
           </table>
         )}
       </div>
+
+      {/* Modale : informations de l'employé sélectionné */}
+      {employeSelectionne && (
+        <Modal
+          titre="Informations de l'employé"
+          onFermer={() => setEmployeSelectionne(null)}
+        >
+          <div className="d-flex align-items-center gap-3 mb-4">
+            <div
+              className="avatar-initiales"
+              style={{
+                backgroundColor: couleurAvatar(employeSelectionne.nom),
+                width: '56px',
+                height: '56px',
+                fontSize: '18px',
+              }}
+            >
+              {initiales(employeSelectionne.nom, employeSelectionne.prenom)}
+            </div>
+            <div>
+              <div className="fw-bold fs-5">
+                {employeSelectionne.prenom} {employeSelectionne.nom}
+              </div>
+              <div className="text-muted small">Matricule : {employeSelectionne.matricule || '—'}</div>
+            </div>
+          </div>
+
+          <div className="row">
+            <Info label="Email">{employeSelectionne.email}</Info>
+            <Info label="Service">{employeSelectionne.service_nom}</Info>
+            <Info label="Date d'embauche">{formaterDate(employeSelectionne.date_embauche)}</Info>
+            <Info label="Statut du compte">
+              {employeSelectionne.statut
+                ? employeSelectionne.statut === 'ACTIF'
+                  ? 'Actif'
+                  : 'Inactif'
+                : null}
+            </Info>
+            <Info label="Présence aujourd'hui">
+              {employeSelectionne.statut_presence ? (
+                <span className={`badge ${COULEURS_PRESENCE[employeSelectionne.statut_presence]}`}>
+                  {LABELS_PRESENCE[employeSelectionne.statut_presence] || employeSelectionne.statut_presence}
+                </span>
+              ) : (
+                <span className="badge badge-cpg-neutral">Non pointé</span>
+              )}
+            </Info>
+            <Info label="Heure d'arrivée">
+              {employeSelectionne.heure_arrivee ? employeSelectionne.heure_arrivee.slice(0, 5) : null}
+            </Info>
+          </div>
+        </Modal>
+      )}
     </LayoutChef>
   );
 }

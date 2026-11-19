@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { getByService } from '../../services/employeService';
 import Modal from '../../components/Modal';
@@ -11,7 +10,6 @@ const NOUVEAU = '__nouveau__';
 function Services() {
   const [services, setServices] = useState([]);
   const [departements, setDepartements] = useState([]);
-  const [chefs, setChefs] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [messageSucces, setMessageSucces] = useState('');
@@ -20,7 +18,7 @@ function Services() {
   const [idEnEdition, setIdEnEdition] = useState(null);
 
   const [formData, setFormData] = useState({
-    code: '', nom: '', departementId: '', nouveauDepartementNom: '', chefId: '',
+    code: '', nom: '', departementId: '', nouveauDepartementNom: '',
   });
 
   // --- Modale liste des employés ---
@@ -31,14 +29,12 @@ function Services() {
 
   async function charger() {
     try {
-      const [servicesRes, departementsRes, chefsRes] = await Promise.all([
+      const [servicesRes, departementsRes] = await Promise.all([
         api.get('/services'),
         api.get('/departements'),
-        api.get('/employes/chefs'),
       ]);
       setServices(servicesRes.data);
       setDepartements(departementsRes.data);
-      setChefs(chefsRes.data);
     } finally {
       setChargement(false);
     }
@@ -50,7 +46,7 @@ function Services() {
 
   function ouvrirAjout() {
     setIdEnEdition(null);
-    setFormData({ code: '', nom: '', departementId: '', nouveauDepartementNom: '', chefId: '' });
+    setFormData({ code: '', nom: '', departementId: '', nouveauDepartementNom: '' });
     setErreurForm('');
     setAfficherForm(true);
   }
@@ -62,7 +58,6 @@ function Services() {
       nom: s.nom,
       departementId: s.departement_id,
       nouveauDepartementNom: '',
-      chefId: s.chef_id || '',
     });
     setErreurForm('');
     setAfficherForm(true);
@@ -100,18 +95,19 @@ function Services() {
         const resDep = await api.post('/departements', { nom: formData.nouveauDepartementNom });
         departementId = resDep.data.id;
       }
-
+// preapre les donnees pour l'envoi au backend
       const payload = {
         code: formData.code,
         nom: formData.nom,
         departementId,
-        chefId: formData.chefId || null,
       };
-
+// idEnEdition est utilisé pour savoir si on est en mode édition ou création
       if (idEnEdition) {
+        // api.put est utilisé pour mettre à jour un service existant
         await api.put(`/services/${idEnEdition}`, payload);
         setMessageSucces('Service modifié avec succès.');
       } else {
+        // api.post est utilisé pour créer un nouveau service
         await api.post('/services', payload);
         setMessageSucces('Service créé avec succès.');
       }
@@ -197,15 +193,6 @@ function Services() {
                 />
               </div>
             )}
-            <div className="mb-3">
-              <label className="form-label small fw-semibold">Chef de service (optionnel)</label>
-              <select name="chefId" value={formData.chefId} onChange={handleChange} className="form-select">
-                <option value="">-- Aucun --</option>
-                {chefs.map((c) => (
-                  <option key={c.id} value={c.id}>{c.prenom} {c.nom} ({c.matricule})</option>
-                ))}
-              </select>
-            </div>
             {erreurForm && <div className="alert alert-danger py-2 small">{erreurForm}</div>}
             <div className="d-flex gap-2">
               <button type="submit" className="btn btn-cpg-primary">{idEnEdition ? 'Enregistrer' : 'Créer'}</button>

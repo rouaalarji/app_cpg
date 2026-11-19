@@ -1,7 +1,7 @@
 import { createContext, useState, useContext } from 'react';
-
+// Crée la boîte vide
 const AuthContext = createContext();
-
+//Remplit la boîte (utilisateur + fonctions) et l’offre à toute l’application
 function AuthProvider({ children }) {
   const [utilisateur, setUtilisateur] = useState(() => {
     const stored = localStorage.getItem('utilisateur');
@@ -26,7 +26,7 @@ function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
+//Permet à un composant d’ouvrir la boîte et d’accéder à son contenu (utilisateur + fonctions)
 function useAuth() {
   return useContext(AuthContext);
 }

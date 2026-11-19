@@ -117,9 +117,12 @@ function Departements() {
         </div>
       )}
 
+      {/* Modale ajout / modification */}
       {afficherForm && (
-        <div className="card-cpg p-4 mb-4" style={{ maxWidth: '480px' }}>
-          <h6 className="fw-bold mb-3">{idEnEdition ? 'Modifier le département' : 'Nouveau département'}</h6>
+        <Modal
+          titre={idEnEdition ? 'Modifier le département' : 'Nouveau département'}
+          onFermer={() => setAfficherForm(false)}
+        >
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label small fw-semibold">Nom</label>
@@ -129,6 +132,7 @@ function Departements() {
                 value={formData.nom}
                 onChange={handleChange}
                 required
+                autoFocus
                 className="form-control"
                 placeholder="ex: Production, Maintenance, RH"
               />
@@ -143,7 +147,7 @@ function Departements() {
                 rows={2}
               />
             </div>
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="form-label small fw-semibold">Lieu / Zone de travail</label>
               <input
                 type="text"
@@ -154,14 +158,19 @@ function Departements() {
                 placeholder="ex: Site de Redeyef"
               />
             </div>
-            <div className="d-flex gap-2">
-              <button type="submit" className="btn btn-cpg-primary">{idEnEdition ? 'Enregistrer' : 'Créer'}</button>
-              <button type="button" onClick={() => setAfficherForm(false)} className="btn btn-outline-secondary">Annuler</button>
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" onClick={() => setAfficherForm(false)} className="btn btn-light">
+                Annuler
+              </button>
+              <button type="submit" className="btn btn-cpg-primary px-4">
+                {idEnEdition ? 'Enregistrer' : 'Créer'}
+              </button>
             </div>
           </form>
-        </div>
+        </Modal>
       )}
 
+      {/* Modale liste des employés du département */}
       {afficherEmployes && (
         <Modal titre={`Employés — ${departementSelectionne?.nom || ''}`} onFermer={() => setAfficherEmployes(false)}>
           {chargementEmployes && <p className="text-muted mb-0">Chargement...</p>}

@@ -25,4 +25,9 @@ async function checkOut() {
   return response.data;
 }
 
-export { getByEmploye, marquerPresence, getMesPresences, checkIn, checkOut };
+async function getGrille(serviceId, debut, fin) {
+  const { data } = await api.get('/presences/grille', { params: { serviceId, debut, fin } });
+  return data;
+}
+
+export { getByEmploye, marquerPresence, getMesPresences, checkIn, checkOut, getGrille };

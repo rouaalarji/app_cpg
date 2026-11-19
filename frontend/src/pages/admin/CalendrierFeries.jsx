@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { getByMois, create, remove } from '../../services/jourFerieService';
 import Modal from '../../components/Modal';
+import LayoutEmploye from '../../components/layout/LayoutEmploye';
+import LayoutChef from '../../components/layout/LayoutChef';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 const NOMS_MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -10,6 +13,15 @@ const LABELS_TYPE = { FERIE: 'Férié', GREVE: 'Grève', AUTRE: 'Autre' };
 const COULEURS_TYPE = { FERIE: '#dc2626', GREVE: '#d97706', AUTRE: '#6366f1' };
 
 function CalendrierFeries() {
+  const { utilisateur } = useAuth();
+  const estRh = utilisateur?.role === 'RH';
+
+  const LayoutSelon = utilisateur?.role === 'CHEF'
+    ? LayoutChef
+    : (utilisateur?.role === 'RH' || utilisateur?.role === 'ADMIN')
+      ? LayoutAdmin
+      : LayoutEmploye;
+
   const aujourdHui = new Date();
   const [annee, setAnnee] = useState(aujourdHui.getFullYear());
   const [mois, setMois] = useState(aujourdHui.getMonth() + 1);
@@ -56,7 +68,7 @@ function CalendrierFeries() {
   }
 
   function handleClicJour(j) {
-    if (!j) return;
+    if (!j || !estRh) return; // lecture seule pour employé/chef
     const dateStr = `${annee}-${String(mois).padStart(2, '0')}-${String(j).padStart(2, '0')}`;
     const existant = jourFerieDe(j);
     if (existant) {
@@ -82,9 +94,11 @@ function CalendrierFeries() {
   }
 
   return (
-    <LayoutAdmin>
+    <LayoutSelon>
       <h2 className="fw-bold mb-1">Calendrier des jours non travaillés</h2>
-      <p className="text-muted mb-4">Jours fériés, grèves — cliquez sur une date pour la marquer ou la retirer</p>
+      <p className="text-muted mb-4">
+        {estRh ? 'Jours fériés, grèves — cliquez sur une date pour la marquer ou la retirer' : 'Jours fériés et grèves déclarés par les RH'}
+      </p>
 
       <div className="card-cpg p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -111,7 +125,7 @@ function CalendrierFeries() {
                       style={{
                         aspectRatio: '1',
                         borderRadius: '10px',
-                        cursor: 'pointer',
+                        cursor: estRh ? 'pointer' : 'default',
                         background: ferie ? `${COULEURS_TYPE[ferie.type]}15` : '#f8fafc',
                         border: ferie ? `1.5px solid ${COULEURS_TYPE[ferie.type]}` : '1px solid var(--cpg-border)',
                       }}
@@ -140,7 +154,7 @@ function CalendrierFeries() {
         </div>
       </div>
 
-      {dateSelectionnee && (
+      {estRh && dateSelectionnee && (
         <Modal titre={`Marquer le ${dateSelectionnee}`} onFermer={() => setDateSelectionnee(null)}>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -165,7 +179,7 @@ function CalendrierFeries() {
           </form>
         </Modal>
       )}
-    </LayoutAdmin>
+    </LayoutSelon>
   );
 }
 

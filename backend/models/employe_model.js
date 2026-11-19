@@ -26,9 +26,12 @@ async function getById(id) {
 
 async function getByServiceIdAvecPresence(serviceId, date, excludeEmployeId = null) {
   let query = `
-    SELECT e.*, p.statut AS statut_presence, p.heure_arrivee, p.heure_depart,
+    SELECT e.*, s.nom AS service_nom, u.email, u.role,
+           p.statut AS statut_presence, p.heure_arrivee, p.heure_depart,
            dc.id AS conge_id
     FROM employe e
+    LEFT JOIN service s ON e.service_id = s.id
+    LEFT JOIN utilisateur u ON e.utilisateur_id = u.id
     LEFT JOIN presence p ON p.employe_id = e.id AND p.date = ?
     LEFT JOIN demande_conge dc ON dc.employe_id = e.id 
       AND dc.statut IN ('EN_ATTENTE', 'VALIDE_CHEF', 'VALIDE_RH')
@@ -47,7 +50,6 @@ async function getByServiceIdAvecPresence(serviceId, date, excludeEmployeId = nu
   const [rows] = await db.query(query, params);
   return rows;
 }
-
 async function getServiceIdParUtilisateur(utilisateurId) {
   const [rows] = await db.query('SELECT service_id FROM employe WHERE utilisateur_id = ?', [utilisateurId]);
   return rows[0]?.service_id;

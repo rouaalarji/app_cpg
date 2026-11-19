@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { getAllAdmin, getStats, update, getHistoriqueMensuel, getByMois } from '../../services/absenceService';
 import DetailAbsence from '../../pages/admin/DetailAbsence';
 import LayoutAdmin from '../../components/layout/LayoutAdmin';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
+import { getRapportMensuel } from '../../services/rapportService';
 
 const NOMS_MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -10,6 +13,8 @@ function formatMoisLabel(moisStr) {
   const [annee, mois] = moisStr.split('-');
   return `${NOMS_MOIS[parseInt(mois, 10) - 1]} ${annee}`;
 }
+
+/* ---------- Modale historique ---------- */
 
 function ModaleHistorique({ onFermer }) {
   const [historique, setHistorique] = useState([]);
@@ -42,20 +47,57 @@ function ModaleHistorique({ onFermer }) {
     'Non justifiées': h.non_justifiees,
   }));
 
-  return (
+  const contenu = (
     <div
-      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      className="modale-overlay position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
       style={{ background: 'rgba(0,0,0,0.5)', zIndex: 2000 }}
       onClick={onFermer}
     >
+      <style>{`
+        .print-only { display: none; }
+        @media print {
+          #root { display: none !important; }
+          .modale-overlay {
+            position: static !important;
+            background: none !important;
+            display: block !important;
+            height: auto !important;
+          }
+          .modale-contenu {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            overflow: visible !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+          }
+          .modale-contenu .table-responsive {
+            max-height: none !important;
+            overflow: visible !important;
+          }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      `}</style>
+
       <div
-        className="bg-white p-4"
+        className="modale-contenu bg-white p-4"
         style={{ width: '90%', maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto', borderRadius: '16px' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="fw-bold mb-0">Historique des absences par mois</h4>
-          <button className="btn-close" onClick={onFermer}></button>
+          <div className="d-flex align-items-center gap-2 no-print">
+            <button className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" onClick={() => window.print()}>
+              <i className="bi bi-printer"></i> Imprimer
+            </button>
+            <button className="btn-close" onClick={onFermer}></button>
+          </div>
+        </div>
+
+        <div className="print-only mb-3">
+          <p className="mb-0">CPG Redeyef — Imprimé le {new Date().toLocaleDateString('fr-FR')}</p>
         </div>
 
         {chargement && <p className="text-muted">Chargement...</p>}
@@ -84,7 +126,7 @@ function ModaleHistorique({ onFermer }) {
             <div className="d-flex align-items-center gap-2 mb-3">
               <label className="fw-semibold small mb-0">Détail du mois :</label>
               <select
-                className="form-select form-select-sm"
+                className="form-select form-select-sm no-print"
                 style={{ width: 'auto' }}
                 value={moisSelectionne || ''}
                 onChange={(e) => setMoisSelectionne(e.target.value)}
@@ -93,6 +135,7 @@ function ModaleHistorique({ onFermer }) {
                   <option key={h.mois} value={h.mois}>{formatMoisLabel(h.mois)}</option>
                 ))}
               </select>
+              {moisSelectionne && <span className="print-only fw-semibold">{formatMoisLabel(moisSelectionne)}</span>}
             </div>
 
             {chargementDetail && <p className="text-muted small">Chargement du détail...</p>}
@@ -133,6 +176,8 @@ function ModaleHistorique({ onFermer }) {
       </div>
     </div>
   );
+
+  return createPortal(contenu, document.body);
 }
 
 function Absences() {
@@ -143,6 +188,28 @@ function Absences() {
   const [modaleOuverte, setModaleOuverte] = useState(false);
   const [absenceSelectionnee, setAbsenceSelectionnee] = useState(null);
 
+  // --- Synthèse mensuelle générée par IA ---
+  //Le mois choisi par l'utilisateur
+  const [moisRapport, setMoisRapport] = useState(new Date().toISOString().slice(0, 7));
+  //Le texte de synthèse retourné par le backend
+  const [rapport, setRapport] = useState(null);
+  //Indique si la génération est en cours
+  const [chargementRapport, setChargementRapport] = useState(false);
+
+  async function genererRapport() {
+// setChargementRapport(true) est pour disactiver le bouton pendant la génération du rapport. 
+    setChargementRapport(true);
+    try {
+      // Appel à l'API pour générer le rapport pour le mois sélectionné
+      const data = await getRapportMensuel(moisRapport);
+      setRapport(data.synthese);
+    } catch (err) {
+      setRapport("Impossible de générer la synthèse pour le moment.");
+    } finally {
+      setChargementRapport(false);
+    }
+  }
+// fucntion charger() est pour charger les absences et les statistiques au chargement de la page.
   async function charger() {
     try {
       const [absencesData, statsData] = await Promise.all([getAllAdmin(), getStats()]);
@@ -156,13 +223,13 @@ function Absences() {
   useEffect(() => {
     charger();
   }, []);
-
+// Les fonctions handleJustifier  pour mettre à jour le statut d'une absence sélectionnée en "JUSTIFIEE" 
   async function handleJustifier(id) {
     await update(id, { statut: 'JUSTIFIEE' });
     setAbsenceSelectionnee(null);
     charger();
   }
-
+// Les fonctions handleNonJustifier  pour mettre à jour le statut d'une absence sélectionnée en "NON_JUSTIFIEE"
   async function handleNonJustifier(id) {
     await update(id, { statut: 'NON_JUSTIFIEE' });
     setAbsenceSelectionnee(null);
@@ -180,12 +247,45 @@ function Absences() {
           <h2 className="fw-bold mb-1">Absences</h2>
           <p className="text-muted mb-4">Vue globale et statistiques d'absentéisme</p>
         </div>
-        <button
-          className="btn btn-cpg-primary d-flex align-items-center gap-2"
-          onClick={() => setModaleOuverte(true)}
-        >
-          <i className="bi bi-bar-chart-line"></i> Historique par mois
-        </button>
+
+        <div className="d-flex gap-2">
+          <Link
+            to="/admin/presences"
+            className="btn btn-outline-secondary d-flex align-items-center gap-2"
+          >
+            <i className="bi bi-grid-3x3-gap"></i> Grille de présence
+          </Link>
+          <button
+            className="btn btn-cpg-primary d-flex align-items-center gap-2"
+            onClick={() => setModaleOuverte(true)}
+          >
+            <i className="bi bi-bar-chart-line"></i> Historique par mois
+          </button>
+        </div>
+      </div>
+
+      {/* Synthèse mensuelle générée par IA */}
+      <div className="card-cpg p-4 mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+          <h6 className="fw-bold mb-0"><i className="bi bi-stars me-2"></i>Synthèse mensuelle</h6>
+          <div className="d-flex align-items-center gap-2">
+            <input
+              type="month"
+              className="form-control form-control-sm"
+              value={moisRapport}
+              onChange={(e) => setMoisRapport(e.target.value)}
+              style={{ width: '150px' }}
+            />
+            <button className="btn btn-sm btn-cpg-primary" onClick={genererRapport} disabled={chargementRapport}>
+              {chargementRapport ? 'Génération...' : rapport ? 'Régénérer' : 'Générer'}
+            </button>
+          </div>
+        </div>
+        {rapport ? (
+          <p className="mb-0" style={{ lineHeight: '1.7' }}>{rapport}</p>
+        ) : (
+          <p className="text-muted small mb-0">Choisissez un mois et cliquez sur « Générer » pour obtenir un résumé rédigé.</p>
+        )}
       </div>
 
       {stats && (

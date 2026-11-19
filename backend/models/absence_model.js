@@ -123,4 +123,38 @@ async function getByMois(mois) {
 async function marquerDeclaree(id) {
   await db.query('UPDATE absence SET declaree_par_employe = TRUE WHERE id = ?', [id]);
 }
-module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate, getHistoriqueMensuel, getByMois, marquerDeclaree };
+
+async function getStatsMois(mois) {
+  // mois au format 'YYYY-MM'
+  const [[totaux]] = await db.query(`
+    SELECT 
+      COUNT(*) AS total,
+      SUM(CASE WHEN statut = 'JUSTIFIEE' THEN 1 ELSE 0 END) AS justifiees,
+      SUM(CASE WHEN statut = 'NON_JUSTIFIEE' THEN 1 ELSE 0 END) AS non_justifiees
+    FROM absence
+    WHERE DATE_FORMAT(date_debut, '%Y-%m') = ?
+  `, [mois]);
+
+  const [topEmployes] = await db.query(`
+    SELECT e.nom, e.prenom, COUNT(*) AS nb_absences
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    WHERE DATE_FORMAT(a.date_debut, '%Y-%m') = ?
+    GROUP BY a.employe_id
+    ORDER BY nb_absences DESC
+    LIMIT 5
+  `, [mois]);
+
+  const [parService] = await db.query(`
+    SELECT s.nom AS service_nom, COUNT(*) AS nb_absences
+    FROM absence a
+    JOIN employe e ON a.employe_id = e.id
+    JOIN service s ON e.service_id = s.id
+    WHERE DATE_FORMAT(a.date_debut, '%Y-%m') = ?
+    GROUP BY s.id
+    ORDER BY nb_absences DESC
+  `, [mois]);
+
+  return { mois, ...totaux, topEmployes, parService };
+}
+module.exports = { getAll, getById, getByEmployeId, create, update, getAllDetaille, getStats, getStatsEmploye, getByEmployeAndDate, getHistoriqueMensuel, getByMois, marquerDeclaree, getStatsMois };

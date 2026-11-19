@@ -1,6 +1,9 @@
+//Charger les variables d'environnement
 require('dotenv').config();
 const express = require('express');
+// cors car le front et le back sont sur des ports différents 
 const cors = require('cors');
+// Importer les routes son role est definir les endpoints 
 const authRoutes = require('./routes/auth_routes');
 const employeRoutes = require('./routes/employe_routes');
 const serviceRoutes = require ('./routes/service_routes');
@@ -18,7 +21,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+//app.use() permet d'enregistrer un middleware ou un ensemble de routes dans l'application Express.
 app.use('/api/auth', authRoutes);
 app.use('/api/employes',employeRoutes);
 app.use('/api/services', serviceRoutes);
@@ -32,6 +35,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/utilisateurs', utilisateurRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/rapports', require('./routes/rapport_routes'));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);

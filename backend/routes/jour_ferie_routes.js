@@ -9,7 +9,7 @@ router.get('/', jourFerieController.getAll);
 router.get('/prochains', jourFerieController.getProchains);
 router.get('/verifier/:date', jourFerieController.verifierDate);
 router.get('/mois/:annee/:mois', jourFerieController.getByMois);
-router.post('/', autoriserRoles('ADMIN'), jourFerieController.create);
-router.delete('/:id', autoriserRoles('ADMIN'), jourFerieController.remove);
+router.post('/', autoriserRoles('RH'), jourFerieController.create);
+router.delete('/:id', autoriserRoles('RH'), jourFerieController.remove);
 
 module.exports = router;

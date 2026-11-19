@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import RoleRoute from './components/RoleRoute';
-
+import BackButton from './BackButton';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -9,7 +9,6 @@ import Register from './pages/Register';
 import DashboardEmploye from './pages/employe/DashboardEmploye';
 import MonProfil from './pages/employe/MonProfil';
 import MesConges from './pages/employe/MesConges';
-import DemanderConge from './pages/employe/DemanderConge';
 import MesAbsences from './pages/employe/MesAbsences';
 import DeclarerAbsence from './pages/employe/DeclarerAbsence';
 import MesPresences from './pages/employe/MesPresences';
@@ -20,7 +19,6 @@ import MonEquipe from './pages/chef/MonEquipe';
 import PresenceEquipe from './pages/chef/PresenceEquipe';
 import ValidationCongesChef from './pages/chef/ValidationCongesChef';
 import MesCongesChef from './pages/chef/MesConges';
-import DemanderCongeChef from './pages/chef/DemanderConge';
 // Espace RH/Admin
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import Employes from './pages/admin/Employes';
@@ -33,6 +31,7 @@ import TypesConge from './pages/admin/TypesConge';
 import Departements from './pages/admin/Departements';
 import Absences from './pages/admin/Absences';
 import CalendrierFeries from './pages/admin/CalendrierFeries';
+import GrillePresence from './pages/admin/GrillePresence';
 const TOUS_ROLES = ['EMPLOYE', 'CHEF', 'RH', 'ADMIN'];
 
 function App() {
@@ -47,7 +46,6 @@ function App() {
           <Route path="/employe/dashboard" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DashboardEmploye /></RoleRoute>} />
           <Route path="/employe/profil" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MonProfil /></RoleRoute>} />
           <Route path="/employe/mes-conges" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MesConges /></RoleRoute>} />
-          <Route path="/employe/mes-conges/demander" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DemanderConge /></RoleRoute>} />
           <Route path="/employe/mes-absences" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MesAbsences /></RoleRoute>} />
           <Route path="/employe/mes-absences/declarer" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DeclarerAbsence /></RoleRoute>} />
           <Route path="/employe/mes-presences" element={<RoleRoute rolesAutorises={TOUS_ROLES}><MesPresences /></RoleRoute>} />
@@ -58,7 +56,6 @@ function App() {
           <Route path="/chef/presences-equipe" element={<RoleRoute rolesAutorises={['CHEF']}><PresenceEquipe /></RoleRoute>} />
           <Route path="/chef/validation-conges" element={<RoleRoute rolesAutorises={['CHEF']}><ValidationCongesChef /></RoleRoute>} />
           <Route path="/chef/mes-conges" element={<RoleRoute rolesAutorises={['CHEF']}><MesCongesChef /></RoleRoute>} />
-          <Route path="/chef/mes-conges/demander" element={<RoleRoute rolesAutorises={['CHEF']}><DemanderCongeChef /></RoleRoute>} />
           <Route path="/employe/mes-absences/declarer" element={<RoleRoute rolesAutorises={TOUS_ROLES}><DeclarerAbsence /></RoleRoute>} />
           {/* Espace RH/Admin : réservé RH et ADMIN */}
           <Route path="/admin/dashboard" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><DashboardAdmin /></RoleRoute>} />
@@ -71,7 +68,8 @@ function App() {
           <Route path="/admin/types-conge" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><TypesConge /></RoleRoute>} />
           <Route path="/admin/departements" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Departements /></RoleRoute>} />
           <Route path="/admin/absences" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><Absences /></RoleRoute>} />
-          <Route path="/admin/calendrier-feries" element={<RoleRoute rolesAutorises={['ADMIN']}><CalendrierFeries /></RoleRoute>} />
+          <Route path="/admin/calendrier-feries" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><CalendrierFeries /></RoleRoute>} />
+          <Route path="/admin/presences" element={<RoleRoute rolesAutorises={['RH', 'ADMIN']}><GrillePresence /></RoleRoute>} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

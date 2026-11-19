@@ -136,9 +136,7 @@ function Login() {
             </button>
           </form>
 
-          <p className="login-register">
-            Pas encore de compte ? <Link to="/register">Créer un compte</Link>
-          </p>
+          
         </div>
 
         <footer className="login-footer">© {new Date().getFullYear()} CPG. Tous droits réservés.</footer>

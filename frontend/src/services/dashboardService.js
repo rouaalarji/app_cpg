@@ -1,5 +1,5 @@
 import api from './api';
-
+//Le service est le seul endroit du frontend qui parle au backend. Chaque fonction correspond à une route de l’API
 async function getStats() {
   const response = await api.get('/dashboard/stats');
   return response.data;

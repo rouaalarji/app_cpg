@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { getMesDemandes, annuler } from '../../services/demandeCongeService';
 import LayoutChef from '../../components/layout/LayoutChef';
+import DemanderConge from './DemanderConge';
 
 const BADGE_STATUT = {
   EN_ATTENTE: 'badge-cpg-warning',
@@ -21,6 +21,7 @@ function MesConges() {
   const [demandes, setDemandes] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
+  const [modalOuvert, setModalOuvert] = useState(false);
 
   async function charger() {
     try {
@@ -54,9 +55,9 @@ function MesConges() {
           <h2 className="fw-bold mb-1">Mes congés</h2>
           <p className="text-muted mb-0">{demandes.length} demande(s) au total</p>
         </div>
-        <Link to="/chef/mes-conges/demander" className="btn btn-cpg-primary d-flex align-items-center gap-1">
+        <button onClick={() => setModalOuvert(true)} className="btn btn-cpg-primary d-flex align-items-center gap-1">
           <i className="bi bi-plus-lg"></i> Nouvelle demande
-        </Link>
+        </button>
       </div>
 
       {erreur && <div className="alert alert-danger">{erreur}</div>}
@@ -108,6 +109,13 @@ function MesConges() {
           </table>
         )}
       </div>
+
+      {modalOuvert && (
+        <DemanderConge
+          onClose={() => setModalOuvert(false)}
+          onSuccess={charger}
+        />
+      )}
     </LayoutChef>
   );
 }

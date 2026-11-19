@@ -6,7 +6,7 @@ import LayoutAdmin from '../../components/layout/LayoutAdmin';
 
 function TypesConge() {
   const { utilisateur } = useAuth();
-  const estAdmin = utilisateur?.role === 'ADMIN';
+  const estAdmin = utilisateur?.role === 'RH';
 
   const [types, setTypes] = useState([]);
   const [chargement, setChargement] = useState(true);

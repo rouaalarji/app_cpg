@@ -11,11 +11,14 @@ function NotificationBell() {
   const ref = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-
+//funcion charger est utiliser pour telecharger les notifications de l'utilisateur connecté. E
   async function charger() {
     try {
+      // getMesNotifications() envoie une requête au backend pour récupérer les notifications de l'utilisateur 
       const data = await getMesNotifications();
+      // data.notifications contient la liste des notifications
       setNotifications(data.notifications);
+      // data.nonLues contient le nombre de notifications non lues
       setNonLues(data.nonLues);
     } catch (err) {
       // silencieux
@@ -27,17 +30,20 @@ function NotificationBell() {
     const interval = setInterval(charger, 30000); // rafraîchit toutes les 30s
     return () => clearInterval(interval);
   }, []);
-
+// fermer la liste des notifications lorsque l'utilisateur clique n'importe où ailleurs sur la page.
   useEffect(() => {
     function handleClickOutside(e) {
       if (
+        // Vérifie si le clic est en dehors du bouton et du dropdown
         ref.current && !ref.current.contains(e.target) &&
         dropdownRef.current && !dropdownRef.current.contains(e.target)
       ) {
         setOuvert(false);
       }
     }
+    // Ajoute un écouteur d'événement pour détecter les clics en dehors du composant
     document.addEventListener('mousedown', handleClickOutside);
+    // Nettoie l'écouteur d'événement lorsque le composant est démonté
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
@@ -90,7 +96,7 @@ function NotificationBell() {
           </span>
         )}
       </button>
-
+  { /*createPortal est utiliser pour rendre le dropdown des notifications en dehors de */}
       {ouvert && createPortal(
         <div
           ref={dropdownRef}

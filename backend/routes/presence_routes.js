@@ -7,6 +7,7 @@ router.use(verifierToken);
 
 router.get('/', autoriserRoles('RH', 'CHEF'), presenceController.getAll);
 router.get('/mes-presences', presenceController.getMesPresences);
+router.get('/grille', autoriserRoles('RH', 'ADMIN'), presenceController.getGrille);
 router.post('/check-in', presenceController.checkIn);
 router.post('/check-out', presenceController.checkOut);
 router.post('/', autoriserRoles('RH', 'CHEF'), presenceController.create);

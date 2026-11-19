@@ -7,8 +7,8 @@ router.use(verifierToken);
 
 router.get('/', typeCongeController.getAll);
 router.get('/:id', typeCongeController.getById);
-router.post('/', autoriserRoles('ADMIN'), typeCongeController.create);
-router.put('/:id', autoriserRoles('ADMIN'), typeCongeController.update);
-router.delete('/:id', autoriserRoles('ADMIN'), typeCongeController.remove);
+router.post('/', autoriserRoles('RH'), typeCongeController.create);
+router.put('/:id', autoriserRoles('RH'), typeCongeController.update);
+router.delete('/:id', autoriserRoles('RH'), typeCongeController.remove);
 
 module.exports = router;

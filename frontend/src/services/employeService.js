@@ -1,5 +1,6 @@
 import api from './api';
-
+// cette fichier est pour gérer les requêtes API liées aux employés
+// getAll : récupérer tous les employés
 async function getAll() {
   const response = await api.get('/employes');
   return response.data;
@@ -41,4 +42,5 @@ async function getByDepartement(departementId) {
   const response = await api.get(`/employes/departement/${departementId}`);
   return response.data;
 }
+//en faire exportation pour pouvoir l'utiliser dans d'autres fichiers
 export { getAll, getById, create, update, remove,getMonEquipe,getMonProfil,getByService,getByDepartement };

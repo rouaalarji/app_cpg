@@ -12,6 +12,7 @@ const LABELS_ROLE = {
   RH: 'Ressources Humaines',
   ADMIN: 'Administrateur',
 };
+// Calcule l'ancienneté à partir de la date d'embauche.
 
 function calculerAnciennete(dateStr) {
   if (!dateStr) return null;
@@ -30,6 +31,7 @@ function calculerAnciennete(dateStr) {
 }
 
 function MonProfil() {
+  // Récupère l'utilisateur connecté (id, email, rôle) depuis AuthContext
   const { utilisateur } = useAuth();
 
   const LayoutSelon = utilisateur?.role === 'CHEF'
@@ -61,6 +63,7 @@ function MonProfil() {
     }
     charger();
   }, []);
+// Exécutée à la soumission du formulaire de mot de passe
 
   async function handleChangerMdp(e) {
     e.preventDefault();
